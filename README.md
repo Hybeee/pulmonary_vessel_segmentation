@@ -1,1 +1,2 @@
-# pulmonary_vessel_segmentation
+# Pulmonary Vessel Segmentation - Research Project
+This repository is focused on implementing a solution to pulmonary vein segmentation, specifically targeting the separation of pulmonary veins and arteries that extend from the heart to the lungs. The project is part of a master's degree academic work.
