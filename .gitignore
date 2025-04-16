@@ -1,0 +1,13 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore folders
+dataset/
+paper/
+
+# Ignore files
+*.nii
+*.nii.gz
+*.jpg
+*.txt
