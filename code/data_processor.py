@@ -35,6 +35,7 @@ class DataHandler:
         # Initializing dependent attributes
         self.bboxs = self.get_bboxs()
         self.skeletons = self.get_skeletons()
+        self.intersections = self.get_intersections()
 
     def get_bboxs(self):
         bboxs = []
@@ -55,3 +56,54 @@ class DataHandler:
             skeletons.append(skeleton)
 
         return np.array(skeletons)
+    
+    def get_intersections(self):
+        intersections = []
+
+        for mask, skeleton, mask_bbox in zip(self.np_masks, self.skeletons, self.bboxs):
+            curr_intersections = np.zeros_like(mask)
+
+            for index, bbox in enumerate(mask_bbox):
+                z_start, z_end = bbox[0].start, bbox[0].stop
+                y_start, y_end = bbox[1].start, bbox[1].stop
+                x_start, x_end = bbox[2].start, bbox[2].end
+
+                z_start_intersections = np.array([
+                    (y, x) for (y, x) in np.argwhere(skeleton[z_start, :, :])
+                    if (y_start <= y <= y_end) and (x_start <= x <= x_end)
+                ])
+                z_end_intersections = np.array([
+                    (y, x) for (y, x) in np.argwhere(skeleton[z_end, :, :])
+                    if (y_start <= y <= y_end) and (x_start <= x <= x_end)
+                ])
+                y_start_intersections = np.array([
+                    (z, x) for (z, x) in np.argwhere(skeleton[:, y_start, :])
+                    if (z_start <= z <= z_end) and (x_start <= x <= x_end)
+                ])
+                y_end_intersections = np.array([
+                    (z, x) for (z, x) in np.argwhere(skeleton[:, y_end, :])
+                    if(z_start <= z <= z_end) and (x_start <= x <= x_end)
+                ])
+                if index == 0:
+                    x_intersections = np.array([
+                        (z, y) for (z, y) in np.argwhere(skeleton[:, :, x_start])
+                        if (z_start <= z <= z_end) and (y_start <= y <= y_end)
+                    ])
+                else:
+                    x_intersections = np.array([
+                        (z, y) for(z, y) in np.argwhere(skeleton[:, :, x_end])
+                        if (z_start <= z <= z_end) and (y_start <= y <= y_end)
+                    ])
+
+            curr_intersections[z_start, z_start_intersections[:, 0], z_start_intersections[:, 1]] = 1
+            curr_intersections[z_end, z_end_intersections[:, 0], z_end_intersections[:, 1]] = 1
+            curr_intersections[y_start_intersections[:, 0], y_start, y_start_intersections[:, 1]] = 1
+            curr_intersections[y_end_intersections[:, 1], y_end, y_end_intersections[:, 1]] = 1
+            if index == 0:
+                curr_intersections[x_intersections[:, 0], x_intersections[:, 1], x_start] = 1
+            else:
+                curr_intersections[x_intersections[:, 0], x_intersections[:, 1], x_end] = 1
+        
+        intersections.append(curr_intersections)
+
+        return np.array(intersections)
