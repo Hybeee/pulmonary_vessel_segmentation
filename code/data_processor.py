@@ -11,7 +11,8 @@ class DataHandler:
     Initialized by the following steps:\n
         - Creates the skeleton to the original mask of the CT image (meaning vein and artery masks)
         - For each ct scan determines the intersection points of a given bounding box and the skeleton
-    NOTE: should bbox be created here? should bbox be given as a parameter
+    NOTE: should bbox be created here? should bbox be given as a parameter\n
+    NOTE: Implementation of current class will probably change a lot in the future, the important part currently is the core.
 
     PARAMETERS
     ----------
@@ -27,17 +28,29 @@ class DataHandler:
         self.cts = cts
         self.masks = masks
         self.spacings = spacings
+        self.np_cts = cts.cpu().numpy()
+        self.np_masks = masks.cpu().numpy()
+        self.np_spacings = spacings.cpu().numpy()
 
-        self.skeletons = self.get_skeletons(masks)
+        # Initializing dependent attributes
+        self.bboxs = self.create_bboxs()
+        self.skeletons = self.get_skeletons()
 
-    def get_skeletons(self, masks):
+    def get_bboxs(self):
+        bboxs = []
+        for mask, spacing in zip(self.np_masks, self.np_spacings):
+            bbox = get_bbox(mask, spacing)
+            bboxs.append(bbox)
+
+        return np.array(bboxs)
+
+    def get_skeletons(self):
         """
         Creates the skeletons for each input mask.
         Uses skimage.morpoholy.skeletonize(...).
         """
-        np_masks = masks.cpu().numpy()
         skeletons = []
-        for mask in np_masks:
+        for mask in self.np_masks:
             skeleton = skeletonize(mask).astype(np.uint16)
             skeletons.append(skeleton)
 
