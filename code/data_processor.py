@@ -33,7 +33,7 @@ class DataHandler:
         self.np_spacings = spacings.cpu().numpy()
 
         # Initializing dependent attributes
-        self.bboxs = self.create_bboxs()
+        self.bboxs = self.get_bboxs()
         self.skeletons = self.get_skeletons()
 
     def get_bboxs(self):
