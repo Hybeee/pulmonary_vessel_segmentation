@@ -4,7 +4,7 @@ import sknw
 import matplotlib.pyplot as plt
 import numpy as np
 import SimpleITK as sitk
-from scan_plotter import scan_to_np_array, view_scan
+from utils.scan_plotter import scan_to_np_array, view_scan
 
 def old_main_code():
     print("Old main!")

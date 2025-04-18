@@ -1,6 +1,6 @@
 from skimage.morphology import skeletonize
 import sknw
-from bbox_code import get_bbox
+from utils.bbox_code import get_bbox
 import numpy as np
 
 class DataHandler:
