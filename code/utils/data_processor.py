@@ -117,9 +117,25 @@ class DataHandler:
 
         return np.array(intersections)
 
-# def resample_image()
+def resample_image(image, original_spacing, target_shape):
+    original_size = np.array(image.shape)
+    new_spacing = original_spacing * (original_size / np.array(target_shape))
 
-def read_images_from_files(folder_path) -> np.ndarray:
+    sitk_image = sitk.GetImageFromArray(image)
+
+    resample_filter = sitk.ResampleImageFilter()
+    resample_filter.SetSize([int(size) for size in target_shape])
+    resample_filter.SetOutputSpacing(new_spacing.tolist())
+    resample_filter.SetOutputOrigin(sitk_image.GetOrigin())
+    resample_filter.SetOutputDirection(sitk_image.GetDirection())
+
+    resample_filter.SetInterpolator(sitk.sitkLinear)
+
+    resampled_image = resample_filter.Execute(sitk_image)
+
+    return sitk.GetArrayFromImage(resampled_image)
+
+def read_images_from_files(folder_path, spacings) -> np.ndarray:
     """
     Input is a folder containing .nii/.nii.gz or .npz files.
     The function reads those files and returns them in a numpy array.
@@ -127,7 +143,7 @@ def read_images_from_files(folder_path) -> np.ndarray:
     # Resampling: 341x341x225 or 225x341x341?
     images = []
     i = 0
-    for name in os.listdir(folder_path):
+    for name, spacing in zip(os.listdir(folder_path), spacings):
         if i == 5:
             break
         file_path = f"{folder_path}/{name}"
@@ -136,6 +152,7 @@ def read_images_from_files(folder_path) -> np.ndarray:
         else:
             image = sitk.ReadImage(file_path)
             image = sitk.GetArrayFromImage(image)
+        image = resample_image(image, spacing, (225, 341, 341))
         images.append(image)
         print(image.shape)
         i += 1
