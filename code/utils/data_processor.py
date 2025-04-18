@@ -124,7 +124,7 @@ def resample_image(image, original_spacing, target_shape):
     sitk_image = sitk.GetImageFromArray(image)
 
     resample_filter = sitk.ResampleImageFilter()
-    resample_filter.SetSize([int(size) for size in target_shape])
+    resample_filter.SetSize([int(size) for size in target_shape[::-1]])
     resample_filter.SetOutputSpacing(new_spacing.tolist())
     resample_filter.SetOutputOrigin(sitk_image.GetOrigin())
     resample_filter.SetOutputDirection(sitk_image.GetDirection())
