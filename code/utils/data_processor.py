@@ -2,6 +2,8 @@ from skimage.morphology import skeletonize
 import sknw
 from utils.bbox_code import get_bbox
 import numpy as np
+import os
+import SimpleITK as sitk
 
 class DataHandler:
     """
@@ -114,3 +116,20 @@ class DataHandler:
         intersections.append(curr_intersections)
 
         return np.array(intersections)
+    
+def read_images_from_files(folder_path) -> np.ndarray:
+    """
+    Input is a folder containing .nii/.nii.gz or .npz files.
+    The function reads those files and returns them in a numpy array.
+    """
+    images = []
+    for name in os.listdir(folder_path):
+        file_path = f"{folder_path}/{name}"
+        if name[-3:] == "npz":
+            image = np.load(file_path, allow_pickle=True)["data"]
+        else:
+            image = sitk.ReadImage(file_path)
+            image = sitk.GetArrayFromImage(image)
+        images.append(image)
+    
+    return np.array(images)
