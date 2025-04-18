@@ -122,10 +122,11 @@ def resample_image(image, original_spacing, target_shape):
     new_spacing = original_spacing * (original_size / np.array(target_shape))
 
     sitk_image = sitk.GetImageFromArray(image)
+    sitk_image.SetSpacing(original_spacing[::-1]) # by default spacing is set to [1, 1, 1]
 
     resample_filter = sitk.ResampleImageFilter()
-    resample_filter.SetSize([int(size) for size in target_shape[::-1]])
-    resample_filter.SetOutputSpacing(new_spacing.tolist())
+    resample_filter.SetSize([int(size) for size in target_shape[::-1]]) # expects x, y, z
+    resample_filter.SetOutputSpacing(new_spacing[::-1].tolist()) # expects x, y, z
     resample_filter.SetOutputOrigin(sitk_image.GetOrigin())
     resample_filter.SetOutputDirection(sitk_image.GetDirection())
 
@@ -149,6 +150,7 @@ def read_images_from_files(folder_path, spacings) -> np.ndarray:
         file_path = f"{folder_path}/{name}"
         if name[-3:] == "npz":
             image = np.load(file_path, allow_pickle=True)["data"]
+            image = image.transpose(2, 0, 1) # for HiPaS dataset at least image is stored as [y, x, z] -> [z, y, x]
         else:
             image = sitk.ReadImage(file_path)
             image = sitk.GetArrayFromImage(image)

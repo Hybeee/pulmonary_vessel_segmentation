@@ -1,4 +1,5 @@
 from utils.data_processor import read_images_from_files, resample_image
+from utils.scan_plotter import view_scan
 import pandas as pd
 import numpy as np
 import ast
@@ -14,7 +15,9 @@ def resample_tester():
     ct = sitk.GetArrayFromImage(ct)
 
     print(ct.shape)
+    view_scan(ct)
     ct = resample_image(ct, spacings[4], (225, 341, 341))
+    view_scan(ct)
     print(ct.shape)
 
 def main():
