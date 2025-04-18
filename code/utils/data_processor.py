@@ -116,14 +116,20 @@ class DataHandler:
         intersections.append(curr_intersections)
 
         return np.array(intersections)
-    
+
+# def resample_image()
+
 def read_images_from_files(folder_path) -> np.ndarray:
     """
     Input is a folder containing .nii/.nii.gz or .npz files.
     The function reads those files and returns them in a numpy array.
     """
+    # Resampling: 341x341x225 or 225x341x341?
     images = []
+    i = 0
     for name in os.listdir(folder_path):
+        if i == 5:
+            break
         file_path = f"{folder_path}/{name}"
         if name[-3:] == "npz":
             image = np.load(file_path, allow_pickle=True)["data"]
@@ -131,5 +137,7 @@ def read_images_from_files(folder_path) -> np.ndarray:
             image = sitk.ReadImage(file_path)
             image = sitk.GetArrayFromImage(image)
         images.append(image)
+        print(image.shape)
+        i += 1
     
     return np.array(images)
