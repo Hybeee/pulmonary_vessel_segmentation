@@ -38,6 +38,10 @@ class DataHandler:
         self.intersections = self.get_intersections()
 
     def get_bboxs(self):
+        """
+        Retrieves the bounding boxes of the ct images.\n
+        Needed later to determine intersection points.
+        """
         bboxs = []
         for mask, spacing in zip(self.np_masks, self.np_spacings):
             bbox = get_bbox(mask, spacing)
@@ -58,6 +62,9 @@ class DataHandler:
         return np.array(skeletons)
     
     def get_intersections(self):
+        """
+        Calculates the intersections for each skeleton and bounding box pair..
+        """
         intersections = []
 
         for mask, skeleton, mask_bbox in zip(self.np_masks, self.skeletons, self.bboxs):
