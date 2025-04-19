@@ -141,12 +141,16 @@ def resample_image(image, original_spacing, target_shape):
 
     return sitk.GetArrayFromImage(resampled_image)
 
-def read_images_from_files(folder_path, spacings) -> np.ndarray:
+def read_images_from_files(folder_path, spacings, verbose=False) -> np.ndarray:
     """
     Input is a folder containing .nii/.nii.gz or .npz files.
     The function reads those files and returns them in a numpy array.
     """
     # Resampling: 341x341x225 or 225x341x341?
+
+    if verbose:
+        print(f"Reading scans from: {folder_path}")
+
     images = []
     i = 0
     for name, spacing in zip(os.listdir(folder_path), spacings):
@@ -161,7 +165,6 @@ def read_images_from_files(folder_path, spacings) -> np.ndarray:
             image = sitk.GetArrayFromImage(image)
         image = resample_image(image, spacing, (225, 341, 341))
         images.append(image)
-        print(image.shape)
         i += 1
     
     return np.array(images)

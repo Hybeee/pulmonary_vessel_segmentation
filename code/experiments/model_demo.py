@@ -35,13 +35,13 @@ def run_TS_on_image(scan_name, scan_path, task="total", class_indices=None):
 
 def main():
 
-    scan_name = "005"
-    scan_path = 'dataset/HiPaS/ct_scan_nii/005.nii.gz'
+    scan_name = "mytemp"
+    scan_path = 'code/temp_images/temp_ct.nii.gz'
 
     # scan_name = "bbox_scan"
     # scan_path = "dataset/bbox/ct_for_bbox.nii.gz"
 
-    run_TS_on_image(scan_name, scan_path, task="lung_vessels")
+    run_TS_on_image(scan_name, scan_path, task="total")
 
 if __name__ == "__main__":
     # print(torch.cuda.is_available())
