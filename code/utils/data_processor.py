@@ -4,6 +4,7 @@ from utils.bbox_code import get_bbox
 import numpy as np
 import os
 import SimpleITK as sitk
+from utils.ts_util import get_pulmonary_mask
 
 class DataHandler:
     """
@@ -24,6 +25,8 @@ class DataHandler:
         input masks
     spacing:
         spacing of the ct images
+    pulmonary_masks = None:
+        Pulmonary vein binary masks for the ct scans - if provided by caller
     """
     def __init__(self, cts, masks, spacings, pulmonary_masks = None):
         # Initializing attributes
@@ -33,7 +36,7 @@ class DataHandler:
         self.np_masks = masks.cpu().numpy()
         self.np_spacings = spacings
         if pulmonary_masks is None:
-            self.np_pulmonary_masks = get_pulmonary_masks()
+            self.np_pulmonary_masks = self.make_pulmonary_masks()
         else:
             self.np_pulmonary_masks  = pulmonary_masks
 
@@ -42,8 +45,17 @@ class DataHandler:
         self.skeletons = self.get_skeletons()
         self.intersections = self.get_intersections()
 
-    def get_pulmonary_masks():
-        print("Getting pulmonary masks")
+    def make_pulmonary_masks(self):
+        """
+        Retrieves the pulmonary masks for the ct images in cts attribute
+        """
+        pulmonary_masks = []
+
+        for ct in self.np_cts:
+            pulmonary_mask = get_pulmonary_mask(ct)
+            pulmonary_masks.append(pulmonary_mask)
+        
+        return np.array(pulmonary_masks)
 
     def get_bboxs(self):
         """
