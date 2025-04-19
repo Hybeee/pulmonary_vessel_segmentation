@@ -5,7 +5,7 @@ def extract_binary_mask(mask, class_indices):
     """
     Converts a multi-class mask into a binary mask for the specified class index or indices.
     """
-    if class_indices is not np.array:
+    if not isinstance(class_indices, np.ndarray):
         class_indices = np.array(class_indices)
     
     binary_mask = (np.isin(mask, class_indices)).astype(int)
