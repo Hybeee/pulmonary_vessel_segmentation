@@ -118,6 +118,11 @@ class DataHandler:
         return np.array(intersections)
 
 def resample_image(image, original_spacing, target_shape):
+    """
+    Resamples a ct image to a given target_shape.
+    New image's spacing will be calculated based on targetshape with the following formula:
+    original_spacing * (original_size / target_shape) // each being a 3dim vector in current project
+    """
     original_size = np.array(image.shape)
     new_spacing = original_spacing * (original_size / np.array(target_shape))
 
