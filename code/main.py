@@ -28,28 +28,28 @@ def make_pulmonary_masks():
 
     cts = read_images_from_files(f"{data_root}/ct_scan_nii", spacings, verbose=True)
 
-    print(cts.shape)
+    # print(cts.shape)
 
-    mask = get_pulmonary_mask(cts[4])
+    # mask = get_pulmonary_mask(cts[4])
 
-    print(mask.shape)
+    # print(mask.shape)
 
-    mask_sitk = sitk.GetImageFromArray(mask)
-    sitk.WriteImage(mask_sitk, "code/temp_images/temp_mask.nii.gz")
+    # mask_sitk = sitk.GetImageFromArray(mask)
+    # sitk.WriteImage(mask_sitk, "code/temp_images/temp_mask.nii.gz")
 
     pulmonary_masks = []
 
-    # for ct in cts:
-    #     pulmonary_mask = get_pulmonary_mask(ct)
-    #     pulmonary_masks.append(pulmonary_mask)
+    for ct in cts:
+        pulmonary_mask = get_pulmonary_mask(ct)
+        pulmonary_masks.append(pulmonary_mask)
     
-    # pulmonary_masks = np.array(pulmonary_masks)
+    pulmonary_masks = np.array(pulmonary_masks)
 
-    # i = 1
-    # for mask in pulmonary_masks:
-    #     mask_sitk = sitk.GetImageFromArray(mask)
-    #     sitk.WriteImage(mask_sitk, f"code/temp_images/00{i}_pulmonary_mask.nii.gz")
-    #     i += 1
+    i = 1
+    for mask in pulmonary_masks:
+        mask_sitk = sitk.GetImageFromArray(mask)
+        sitk.WriteImage(mask_sitk, f"code/temp_images/temp_pulmonary_masks/00{i}_pulmonary_mask.nii.gz")
+        i += 1
 
 def main():
     # resample_tester()

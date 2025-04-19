@@ -25,19 +25,25 @@ class DataHandler:
     spacing:
         spacing of the ct images
     """
-    def __init__(self, cts, masks, spacings):
+    def __init__(self, cts, masks, spacings, pulmonary_masks = None):
         # Initializing attributes
         self.cts = cts
         self.masks = masks
-        self.spacings = spacings
         self.np_cts = cts.cpu().numpy()
         self.np_masks = masks.cpu().numpy()
-        self.np_spacings = spacings.cpu().numpy()
+        self.np_spacings = spacings
+        if pulmonary_masks is None:
+            self.np_pulmonary_masks = get_pulmonary_masks()
+        else:
+            self.np_pulmonary_masks  = pulmonary_masks
 
         # Initializing dependent attributes
         self.bboxs = self.get_bboxs()
         self.skeletons = self.get_skeletons()
         self.intersections = self.get_intersections()
+
+    def get_pulmonary_masks():
+        print("Getting pulmonary masks")
 
     def get_bboxs(self):
         """
