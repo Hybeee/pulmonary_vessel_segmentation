@@ -50,14 +50,20 @@ def filter_nodes(nodes, bboxs):
     
     return np.array(result)
 
+def filter_nodes_2(graph, bboxs):
+    result = []
+
+    for node in graph.nodes:
+        node_coord = graph.nodes[node]['o']
+        if not filter_nodes_helper(node_coord, bboxs):
+            result.append(node)
+    
+    return np.array(result)
+
 def get_distance(point1, point2):
     return np.linalg.norm(point1 - point2)
 
-def point_on_segment(p, a, b, eps=1e-6):
-    pz, py, px = p
-    z1, y1, x1 = a
-    z2, y2, x2 = b
-
+def point_on_segment(p, a, b, eps=1e-3):
     ab = b - a
     ap = p - a
 
@@ -72,6 +78,8 @@ def point_on_segment(p, a, b, eps=1e-6):
 
 def get_closest_graph_nodes_2(intersections, graph):
     ret_nodes = []
+    z, y, x = np.where(intersections > 0)
+    intersections = np.column_stack((z, y, x))
     for intersection in intersections:
         for (u, v) in graph.edges:
             current_edge = graph[u][v]['pts']
@@ -81,6 +89,8 @@ def get_closest_graph_nodes_2(intersections, graph):
             for i in range(len(current_edge) - 1):
                 if point_on_segment(intersection, current_edge[i], current_edge[i + 1]):
                     ret_nodes.append([u, v])
+    
+    return ret_nodes
 
 
 def get_closest_graph_nodes(intersections, graph, bbox):
@@ -110,11 +120,23 @@ def get_closest_graph_nodes(intersections, graph, bbox):
 def main():
     skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
     skeleton = sitk.GetArrayFromImage(skeleton)
+    intersections = sitk.ReadImage('dataset/intersections/005_vessel_intersections_bbox.nii.gz')
+    intersections = sitk.GetArrayFromImage(intersections)
     # skeleton = skeleton.transpose(2, 1, 0) # ez miert breakeli a get_graph-ot?
     print(skeleton.shape)
     vessel_graph = get_graph(skeleton)
     nodes = vessel_graph.nodes()
     edges = vessel_graph.edges()
+
+    bbox = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
+            [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
+    filtered_node_ids = filter_nodes_2(vessel_graph, bbox)
+
+    closest_nodes = get_closest_graph_nodes_2(intersections, vessel_graph)
+
+    print(closest_nodes.shape)
+
+    return
 
     plotter = pv.Plotter()
     for (start, end) in edges:

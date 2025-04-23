@@ -1,6 +1,7 @@
 import sknw
 import SimpleITK as sitk
 import numpy as np
+from viewer_3d import point_on_segment
 
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
@@ -45,20 +46,24 @@ def main():
 
     # print(graph.nodes[0]['o'])
 
-    nodes = np.array([graph.nodes[node_id]['o'] for node_id in graph.nodes])
+    # nodes = np.array([graph.nodes[node_id]['o'] for node_id in graph.nodes])
 
     # Stores nodes which are relevant wrt. traversing the graph
-    relevant_nodes = filter_nodes(nodes, bboxs)
+    # relevant_nodes = filter_nodes(nodes, bboxs)
 
-    print(f"Number of filtered nodes: {len(graph.nodes) - relevant_nodes.shape[0]}")
+    # print(f"Number of filtered nodes: {len(graph.nodes) - relevant_nodes.shape[0]}")
 
     edge_points = graph[0][7]['pts']
 
-    print(f"First: {edge_points[0]}\nLast: {edge_points[-1]}")
-    print(f"Node 1: {graph.nodes[0]['o']}\nNode 2: {graph.nodes[7]['o']}")
+    # print(f"First: {edge_points[0]}\nLast: {edge_points[-1]}")
+    # print(f"Node 1: {graph.nodes[0]['o']}\nNode 2: {graph.nodes[7]['o']}")
 
-    for edge in graph.edges:
-        print(edge)
+    print(f"{edge_points[0]}\n{edge_points[1]}")
+
+    point_on_line = edge_points[0] + 0.5 * (edge_points[1] - edge_points[0])
+    print(point_on_line)
+
+    print(point_on_segment(point_on_line, edge_points[0], edge_points[1]))
 
 if __name__ == "__main__":
     main()
