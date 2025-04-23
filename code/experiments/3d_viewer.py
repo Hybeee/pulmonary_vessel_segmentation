@@ -53,6 +53,36 @@ def filter_nodes(nodes, bboxs):
 def get_distance(point1, point2):
     return np.linalg.norm(point1 - point2)
 
+def point_on_segment(p, a, b, eps=1e-6):
+    pz, py, px = p
+    z1, y1, x1 = a
+    z2, y2, x2 = b
+
+    ab = a - b
+    ap = p
+
+    cross = np.cross(ab, ap)
+    if np.linalg.norm(cross) > eps:
+        return False
+    
+    ab_dot_ab = np.dot(ab, ab)
+    ap_dot_ab = np.dot(ap, ab)
+
+    return 0 - eps <= ap_dot_ab <= ab_dot_ab + eps
+
+def get_closest_graph_nodes_2(intersections, graph):
+    ret_nodes = []
+    for intersection in intersections:
+        for (u, v) in graph.edges:
+            current_edge = graph[u][v]['pts']
+            if len(current_edge) == 0:
+                continue
+
+            for i in range(len(current_edge) - 1):
+                if point_on_segment(intersection, current_edge[i], current_edge[i + 1]):
+                    ret_nodes.append([u, v])
+
+
 def get_closest_graph_nodes(intersections, graph, bbox):
     z, y, x = np.where(intersections > 0)
     intersections = np.column_stack((z, y, x))

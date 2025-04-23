@@ -26,6 +26,13 @@ def filter_nodes(nodes, bboxs):
 
     return np.array(filtered_nodes)
 
+def traverse_component(starting_point, closest_node_id):
+    """
+    starting_point in this case is the point of intersection.
+    closest_node_id is the node closest to the intersection point.
+    Traversal should be done in this direction.
+    """
+
 def main():
     skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
     skeleton = sitk.GetArrayFromImage(skeleton)
@@ -42,8 +49,16 @@ def main():
 
     # Stores nodes which are relevant wrt. traversing the graph
     relevant_nodes = filter_nodes(nodes, bboxs)
-    
+
     print(f"Number of filtered nodes: {len(graph.nodes) - relevant_nodes.shape[0]}")
+
+    edge_points = graph[0][7]['pts']
+
+    print(f"First: {edge_points[0]}\nLast: {edge_points[-1]}")
+    print(f"Node 1: {graph.nodes[0]['o']}\nNode 2: {graph.nodes[7]['o']}")
+
+    for edge in graph.edges:
+        print(edge)
 
 if __name__ == "__main__":
     main()
