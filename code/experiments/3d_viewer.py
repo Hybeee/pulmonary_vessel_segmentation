@@ -58,8 +58,8 @@ def point_on_segment(p, a, b, eps=1e-6):
     z1, y1, x1 = a
     z2, y2, x2 = b
 
-    ab = a - b
-    ap = p
+    ab = b - a
+    ap = p - a
 
     cross = np.cross(ab, ap)
     if np.linalg.norm(cross) > eps:
