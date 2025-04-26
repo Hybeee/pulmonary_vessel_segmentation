@@ -88,9 +88,10 @@ def get_closest_graph_nodes_2(intersections, graph):
 
             for i in range(len(current_edge) - 1):
                 if point_on_segment(intersection, current_edge[i], current_edge[i + 1]):
-                    ret_nodes.append([u, v])
+                    ret_nodes.append(u)
+                    ret_nodes.append(v)
     
-    return ret_nodes
+    return np.array(ret_nodes)
 
 
 def get_closest_graph_nodes(intersections, graph, bbox):
@@ -117,28 +118,11 @@ def get_closest_graph_nodes(intersections, graph, bbox):
     
     closest_nodes = np.array(closest_nodes)
     return closest_nodes[:, [2, 1, 0]]
-def main():
-    skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
-    skeleton = sitk.GetArrayFromImage(skeleton)
-    intersections = sitk.ReadImage('dataset/intersections/005_vessel_intersections_bbox.nii.gz')
-    intersections = sitk.GetArrayFromImage(intersections)
-    # skeleton = skeleton.transpose(2, 1, 0) # ez miert breakeli a get_graph-ot?
-    print(skeleton.shape)
-    vessel_graph = get_graph(skeleton)
+
+def add_graph_to_plot(plotter: pv.Plotter, vessel_graph):
     nodes = vessel_graph.nodes()
     edges = vessel_graph.edges()
 
-    bbox = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
-            [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
-    filtered_node_ids = filter_nodes_2(vessel_graph, bbox)
-
-    closest_nodes = get_closest_graph_nodes_2(intersections, vessel_graph)
-
-    print(closest_nodes.shape)
-
-    return
-
-    plotter = pv.Plotter()
     for (start, end) in edges:
         edge_points = vessel_graph[start][end]['pts']
         edge_points = edge_points[:, [2, 1, 0]]
@@ -149,14 +133,35 @@ def main():
     node_points = node_points[:, [2, 1, 0]]
     plotter.add_points(node_points, color="red", opacity=0.8, point_size=5, render_points_as_spheres=True)
 
+def main():
+    skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
+    skeleton = sitk.GetArrayFromImage(skeleton)
     intersections = sitk.ReadImage('dataset/intersections/005_vessel_intersections_bbox.nii.gz')
     intersections = sitk.GetArrayFromImage(intersections)
-    bbox = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
-            [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
-    closest_nodes = get_closest_graph_nodes(intersections=intersections, graph=vessel_graph, bbox=bbox)
-    print(closest_nodes.shape)
+    # skeleton = skeleton.transpose(2, 1, 0) # ez miert breakeli a get_graph-ot?
+    print(skeleton.shape)
+    vessel_graph = get_graph(skeleton)
 
-    plotter.add_points(closest_nodes, color="purple", opacity=0.8, point_size=10, render_points_as_spheres=True)
+    plotter = pv.Plotter()
+
+    add_graph_to_plot(plotter=plotter, vessel_graph=vessel_graph)
+
+    # intersections = sitk.ReadImage('dataset/intersections/005_vessel_intersections_bbox.nii.gz')
+    # intersections = sitk.GetArrayFromImage(intersections)
+    # bbox = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
+    #         [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
+    # # closest_nodes = get_closest_graph_nodes(intersections=intersections, graph=vessel_graph, bbox=bbox)
+    # # print(closest_nodes.shape)
+
+    # filtered_node_ids = filter_nodes_2(vessel_graph, bbox)
+
+    # closest_nodes_ids = get_closest_graph_nodes_2(intersections, vessel_graph)
+
+    # closest_nodes_filtered_ids = np.array([node_id in filtered_node_ids for node_id in closest_nodes_ids])
+
+    # closest_nodes = np.array([vessel_graph.nodes[node_id]['o'] for node_id in closest_nodes_filtered_ids])
+
+    # plotter.add_points(closest_nodes, color="purple", opacity=0.8, point_size=10, render_points_as_spheres=True)
     # plotter.add_points(filtered_nodes, color="orange", opacity=0.8, point_size=10, render_points_as_spheres=True)
     # vessel_mesh = get_mesh('dataset/HiPaS/annotation/vein_nii/005.nii')
     vessel_skeleton_mesh = get_mesh('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
