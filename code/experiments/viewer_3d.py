@@ -4,8 +4,6 @@ import numpy as np
 import sknw
 import math
 
-# TODO: new version of filtering nodes does not work and is needed for graph traversal
-
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
 
