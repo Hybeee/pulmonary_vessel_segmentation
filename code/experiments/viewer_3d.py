@@ -4,6 +4,8 @@ import numpy as np
 import sknw
 import math
 
+# TODO: new version of filtering nodes does not work and is needed for graph traversal
+
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
 
@@ -63,10 +65,9 @@ def filter_nodes_2(graph, bboxs):
 def get_distance(point1, point2):
     return np.linalg.norm(point1 - point2)
 
-def point_on_segment(p, a, b, eps=1e-3):
+def point_on_segment(p, a, b, eps=1):
     ab = b - a
     ap = p - a
-
     cross = np.cross(ab, ap)
     if np.linalg.norm(cross) > eps:
         return False
@@ -81,8 +82,8 @@ def get_closest_graph_nodes_2(intersections, graph):
     z, y, x = np.where(intersections > 0)
     intersections = np.column_stack((z, y, x))
 
-    found = False
     for intersection in intersections:
+        found = False
         for (u, v) in graph.edges:
             current_edge = graph[u][v]['pts']
             if len(current_edge) == 0:
@@ -90,13 +91,10 @@ def get_closest_graph_nodes_2(intersections, graph):
 
             for i in range(len(current_edge) - 1):
                 if point_on_segment(intersection, current_edge[i], current_edge[i + 1]):
-                    print(graph.nodes[u]['o'])
-                    print(graph.nodes[v]['o'])
                     ret_nodes.append(u)
                     ret_nodes.append(v)
                     found = True
                     break
-            
             if found:
                 break
     
@@ -151,15 +149,13 @@ def main():
     print(skeleton.shape)
     vessel_graph = get_graph(skeleton)
 
-    print(vessel_graph.nodes[77]['o'])
-    print(vessel_graph.nodes[99]['o'])
-
     plotter = pv.Plotter()
 
     add_graph_to_plot(plotter=plotter, vessel_graph=vessel_graph)
 
     intersections = sitk.ReadImage('dataset/intersections/005_vessel_intersections_bbox.nii.gz')
     intersections = sitk.GetArrayFromImage(intersections)
+    print(f"Intersections shape: {intersections.shape}")
     bbox = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
             [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
     # closest_nodes = get_closest_graph_nodes(intersections=intersections, graph=vessel_graph, bbox=bbox)
@@ -173,7 +169,7 @@ def main():
     print(f"Intersections shape: {intersections.shape}")
     print(f"Closest nodes shape: {closest_nodes_ids.shape}")
 
-    closest_nodes_filtered_ids = np.array([node_id for node_id in closest_nodes_ids if node_id in filtered_node_ids]) # itt biztos lesz hiba!
+    closest_nodes_filtered_ids = np.array([node_id for node_id in closest_nodes_ids if node_id in filtered_node_ids])
 
     closest_nodes = np.array([vessel_graph.nodes[node_id]['o'] for node_id in closest_nodes_filtered_ids])
     closest_nodes = closest_nodes[:, [2, 1, 0]] # Transposing for the viewer
