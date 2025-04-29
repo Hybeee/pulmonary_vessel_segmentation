@@ -58,8 +58,8 @@ def traverse_component(intersection_point, graph, visited_nodes, endpoints, edge
     next_node = outer_node
     current_position = intersection_point
 
-    current_segment_start = None
-    current_segment_end = None
+    current_segment_start = -1
+    current_segment_end = -1
     current_segment_index = edge_segment_start_index
     remaining_step_size = 0 # NOTE: is this needed? If not handled different step_sizes might occur if edge_length % step_size != 0
 
@@ -68,9 +68,6 @@ def traverse_component(intersection_point, graph, visited_nodes, endpoints, edge
 
     while next_node is not None:
         current_edge = graph[prev_node][next_node]['pts'] # list of segments
-        if current_segment_start is None and current_segment_end is None:
-            current_segment_start = current_edge[current_segment_index]
-            current_segment_end = current_edge[current_segment_index + 1]
 
         # TRAVERSING EDGE BETWEEN PREV_NODE AND NEXT_NODE
         while current_segment_index < len(current_edge) - 1: # current_edge[len(current_edge) - 2] <=> -2nd element. -> the starting point of the last edge.
