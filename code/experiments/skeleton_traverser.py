@@ -97,7 +97,22 @@ def traverse_component(intersection_point, graph, visited_nodes, endpoints, edge
                     remaining_step_size = step_size - remaining_length
                 else:
                     current_position += segment_unit_vector * step_size
+        
+        # When the program exits the edge traversing loop current_position = next_node
+        visited_nodes.append(next_node)
+        next_node_neighbours = [n for n in graph[next_node].keys() if n != prev_node]
+        next_node_neighbours = [(next_node, n) for n in next_node_neighbours if n not in visited_nodes] # maybe remaining_step_size should be saved here!
 
+        if len(next_node_neighbours) == 0:
+            if len(future_nodes) == 0:
+                break
+            else:
+                remaining_step_size = 0
+        else:
+            future_nodes = next_node_neighbours + future_nodes
+        
+        prev_node, next_node = future_nodes[0]
+        current_position = prev_node
 
 def main():
     skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
