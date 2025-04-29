@@ -26,9 +26,9 @@ def filter_nodes(nodes, bboxs):
 
     return np.array(filtered_nodes)
 
-def traverse_component(starting_point, closest_node_id, closest_node_neighbour_id, graph, step_size):
+def traverse_component(intersection_point, graph, endpoints, edge_segment_start_index, step_size=1):
     """
-    NOTE: if two starting points have the same node as their closest nodes they might be on the same edge. What happens in this case? probably gets explored through on of
+    NOTE: if two starting points have the same node as their closest nodes they might be on the same edge. What happens in this case? probably gets explored through one of
     the nodes and then the second one stops immeaditely? Not this function's responsibility.
 
     starting_point in this case is the point of intersection.
@@ -49,8 +49,21 @@ def traverse_component(starting_point, closest_node_id, closest_node_neighbour_i
               the traversal from a different point, thus not continuing the current path.
     """
 
-    next_node = graph.nodes[closest_node_id]['o']
-    prev_node = graph.nodes[closest_node_neighbour_id]['o']
+    inner_node, outer_node = endpoints
+    prev_node = inner_node
+    next_node = outer_node
+    current_position = intersection_point
+
+    # future_nodes = [] = neighbours of current next_node
+    visited_nodes = [prev_node] # in reality prev node is never visited upon initialization.
+
+    current_edge = graph[prev_node][next_node]['pts'] # list of segments
+    current_segment_start = current_edge[edge_segment_start_index]
+    current_segment_end = current_edge[edge_segment_start_index + 1]
+    current_direction = current_segment_end - current_segment_start
+
+
+
 
 
 def main():

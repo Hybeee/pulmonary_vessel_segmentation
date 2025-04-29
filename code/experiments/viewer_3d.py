@@ -76,6 +76,12 @@ def point_on_segment(p, a, b, eps=1):
     return 0 - eps <= ap_dot_ab <= ab_dot_ab + eps
 
 def get_closest_graph_nodes_2(intersections, graph):
+    """
+    NOTE: For visualization purposes function stays as is.
+    However for the traversal of the graph two things will be needed for each intersection:
+        - The endpoints of the edge it's on.
+        - The exact edge segment it's on -> traversal starts from the aforementioned edge segment's two 'endpoints'
+    """
     ret_nodes = []
     z, y, x = np.where(intersections > 0)
     intersections = np.column_stack((z, y, x))
