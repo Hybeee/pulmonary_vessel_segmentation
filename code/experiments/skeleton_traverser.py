@@ -28,6 +28,7 @@ def filter_nodes(nodes, bboxs):
 
 def traverse_component(intersection_point, graph, endpoints, edge_segment_start_index, step_size=1):
     """
+    Implements a DFS for traversing current component.
     NOTE: if two starting points have the same node as their closest nodes they might be on the same edge. What happens in this case? probably gets explored through one of
     the nodes and then the second one stops immeaditely? Not this function's responsibility.
 
@@ -54,16 +55,18 @@ def traverse_component(intersection_point, graph, endpoints, edge_segment_start_
     next_node = outer_node
     current_position = intersection_point
 
-    # future_nodes = [] = neighbours of current next_node
+    current_segment_start = None
+    current_segment_end = None
+
+    future_nodes = [] # when reacing next node: .append(list(graph[next_node].keys())) BEFORE setting next_node as prev node
     visited_nodes = [prev_node] # in reality prev node is never visited upon initialization.
 
-    current_edge = graph[prev_node][next_node]['pts'] # list of segments
-    current_segment_start = current_edge[edge_segment_start_index]
-    current_segment_end = current_edge[edge_segment_start_index + 1]
-    current_direction = current_segment_end - current_segment_start
-
-
-
+    while next_node is not None:
+        current_edge = graph[prev_node][next_node]['pts'] # list of segments
+        if current_segment_start is None and current_segment_end is None:
+            current_segment_start = current_edge[edge_segment_start_index]
+            current_segment_end = current_edge[edge_segment_start_index + 1]
+        current_direction = current_segment_end - current_segment_start
 
 
 def main():
@@ -86,6 +89,8 @@ def main():
     print(f"Number of filtered nodes: {len(graph.nodes)} - {relevant_nodes.shape[0]} = {len(graph.nodes) - relevant_nodes.shape[0]}")
 
     edge_points = graph[0][7]['pts']
+
+    print(list(graph[0].keys()))
 
     # print(f"First: {edge_points[0]}\nLast: {edge_points[-1]}")
     # print(f"Node 1: {graph.nodes[0]['o']}\nNode 2: {graph.nodes[7]['o']}")
