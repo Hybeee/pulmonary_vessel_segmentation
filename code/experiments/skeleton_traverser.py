@@ -26,7 +26,10 @@ def filter_nodes(nodes, bboxs):
 
     return np.array(filtered_nodes)
 
-def traverse_component(intersection_point, graph, endpoints, edge_segment_start_index, step_size=1):
+def get_distance(point1, point2):
+    return np.linalg.norm(point1 - point2)
+
+def traverse_component(intersection_point, graph, visited_nodes, endpoints, edge_segment_start_index, step_size=1):
     """
     Implements a DFS for traversing current component.
     NOTE: if two starting points have the same node as their closest nodes they might be on the same edge. What happens in this case? probably gets explored through one of
@@ -50,23 +53,49 @@ def traverse_component(intersection_point, graph, endpoints, edge_segment_start_
               the traversal from a different point, thus not continuing the current path.
     """
 
-    inner_node, outer_node = endpoints
+    inner_node, outer_node = endpoints # inner node being inside bounding box and outer_node being outside the bounding box
     prev_node = inner_node
     next_node = outer_node
     current_position = intersection_point
 
     current_segment_start = None
     current_segment_end = None
+    current_segment_index = edge_segment_start_index
+    # remaining_step_size = 0 # NOTE: is this needed? If not handled different step_sizes might occur if edge_length % step_size != 0
 
-    future_nodes = [] # when reacing next node: .append(list(graph[next_node].keys())) BEFORE setting next_node as prev node
-    visited_nodes = [prev_node] # in reality prev node is never visited upon initialization.
+    future_nodes = [] # when reaching next node: .append(list(graph[next_node].keys())) BEFORE setting next_node as prev node
+    visited_nodes.append(prev_node) # in reality prev node is never visited - used so that traversal doesn't continue this way.
 
     while next_node is not None:
         current_edge = graph[prev_node][next_node]['pts'] # list of segments
         if current_segment_start is None and current_segment_end is None:
-            current_segment_start = current_edge[edge_segment_start_index]
-            current_segment_end = current_edge[edge_segment_start_index + 1]
-        current_direction = current_segment_end - current_segment_start
+            current_segment_start = current_edge[current_segment_index]
+            current_segment_end = current_edge[current_segment_index + 1]
+
+        # TRAVERSING EDGE BETWEEN PREV_NODE AND NEXT_NODE
+        remaining_step_size = 0
+        while current_segment_index < len(current_edge) - 1: # current_edge[len(current_edge) - 2] <=> -2nd element. -> the starting point of the last edge.
+            current_segment_start = current_edge[current_segment_index]
+            current_segment_end = current_edge[current_segment_index + 1]
+
+            segment_vector = current_segment_end - current_segment_start
+            segment_length = get_distance(current_segment_start, current_segment_end)
+            segment_unit_vector = segment_vector / segment_length
+
+            if remaining_step_size > 0:
+                if remaining_step_size > segment_length:
+                    current_segment_index += 1
+                    remaining_step_size -= segment_length
+                else:
+                    current_position = current_segment_start + segment_unit_vector * remaining_step_size
+                    remaining_step_size = 0
+            else:
+                remaining_length = get_distance(current_position, current_segment_end)
+                if step_size > remaining_length:
+                    current_segment_index += 1
+                    remaining_step_size = step_size - segment_length
+                else:
+                    current_position += segment_unit_vector * step_size
 
 
 def main():
