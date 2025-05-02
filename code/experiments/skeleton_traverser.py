@@ -3,6 +3,7 @@ import SimpleITK as sitk
 import numpy as np
 from viewer_3d import point_on_segment, add_graph_to_plot
 import pyvista as pv
+from collections import defaultdict
 
 class Intersection:
     """
@@ -38,6 +39,21 @@ def filter_nodes_helper(node, bboxs):
 
     return False
 
+def filter_nodes_helper_2(node, bboxs):
+    """
+    Determines whether a given node is inside a bounding box - returns True - or not - returns False.
+    Points of the bounding boxes are considered as True.
+    """
+    for bbox in bboxs:
+        z_start, z_end = bbox[0].start, bbox[0].stop
+        y_start, y_end = bbox[1].start, bbox[1].stop
+        x_start, x_end = bbox[2].start, bbox[2].stop
+
+        if (x_start < node[2] < x_end) and (y_start < node[1] < y_end) and (z_start < node[0] < z_end):
+            return True
+
+    return False
+
 def filter_nodes(graph, bboxs):
     result = []
 
@@ -56,6 +72,13 @@ def filter_nodes_old(nodes, bboxs):
             filtered_nodes.append(node)
 
     return np.array(filtered_nodes)
+
+def is_node_intersection(node, intersections):
+    for intersection in intersections:
+        if np.array_equal(node, intersection):
+            return True
+    
+    return False
 
 def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Intersection]:
     result = []
@@ -87,17 +110,19 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                 if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
                     prev_node = None
                     next_node = None
-                    if filter_nodes_helper(graph.nodes[u]['o'], bboxs):
+                    if filter_nodes_helper(graph.nodes[u]['o'], bboxs) and not filter_nodes_helper(graph.nodes[v]['o'], bboxs):
                         prev_node = u
                         next_node = v
                     else:
                         prev_node = v
                         next_node = u
-                    
-                    intersection_obj = Intersection(intersection=intersection,
-                                                    prev_node=prev_node,
-                                                    next_node=next_node)
-                    result.append(intersection_obj)
+
+                    # QUESTION: can you discard an intersection point for which next_node is also an intersection point? will do for now
+                    if not is_node_intersection(graph.nodes[next_node]['o'], intersections) and not is_node_intersection(graph.nodes[prev_node]['o'], intersections):
+                        intersection_obj = Intersection(intersection=intersection,
+                                                        prev_node=prev_node,
+                                                        next_node=next_node)
+                        result.append(intersection_obj)
                     found = True
                     break
             if found:
@@ -270,6 +295,54 @@ def add_intersections_to_plot(plotter, intersections):
 
     plotter.add_points(intersection_points, color="black", point_size=10, render_points_as_spheres=True)
 
+def filter_intersections(intersection_obj_list):
+    result = []
+    node_dict = defaultdict(list) 
+
+    for intersection in intersection_obj_list:
+        node_dict[(intersection.prev_node, intersection.next_node)].append(intersection)
+
+    for key in node_dict.keys():
+        intersections = node_dict[key]
+        result.append(intersections[0])
+    
+    return np.array(result)
+
+def show_viewer(graph, intersections, intersection_obj_list):
+    intersection_obj_list = filter_intersections(intersection_obj_list)
+    fixed_intersections = np.array([
+        intersection.intersection
+        for intersection in intersection_obj_list
+    ])
+
+    fixed_intersections = fixed_intersections[:, [2, 1, 0]]
+
+    closest_nodes = np.array([
+        graph.nodes[intersection_obj.next_node]['o']
+        for intersection_obj in intersection_obj_list
+    ])
+
+    bboxs = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
+            [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
+
+    # for closest_node in closest_nodes:
+    #     if filter_nodes_helper_2(closest_node, bboxs):
+    #         print(closest_node)
+
+    closest_nodes = closest_nodes[:, [2, 1, 0]]
+
+    plotter = pv.Plotter()
+    add_graph_to_plot(plotter=plotter, vessel_graph=graph)
+    add_bbox_to_plot(plotter=plotter)
+    add_intersections_to_plot(plotter=plotter, intersections=intersections)
+    plotter.add_points(fixed_intersections, color="blue", point_size=10, render_points_as_spheres=True)
+    plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
+    # plotter.add_points(np.array([310, 242, 117]), color='green', point_size=15, render_points_as_spheres=True)
+    # plotter.add_points(np.array([315, 258, 129]), color='brown', point_size=15, render_points_as_spheres=True)
+
+    plotter.show_axes()
+    plotter.show()
+
 def main():
     skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
     skeleton = sitk.GetArrayFromImage(skeleton)
@@ -282,24 +355,7 @@ def main():
 
     intersection_obj_list = create_intersection_objects(intersections=intersections, graph=graph, bboxs=bboxs)
 
-    print(intersection_obj_list.shape)
-
-    closest_nodes = np.array([
-        graph.nodes[intersection_obj.next_node]['o']
-        for intersection_obj in intersection_obj_list
-    ])
-
-    closest_nodes = closest_nodes[:, [2, 1, 0]]
-
-    plotter = pv.Plotter()
-    add_graph_to_plot(plotter=plotter, vessel_graph=graph)
-    add_bbox_to_plot(plotter=plotter)
-    add_intersections_to_plot(plotter=plotter, intersections=intersections)
-    plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
-    plotter.add_points(np.array([387, 261,  99]), color="yellow", point_size=15, render_points_as_spheres=True)
-
-    plotter.show_axes()
-    plotter.show()
+    show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list)
 
 
 if __name__ == "__main__":
