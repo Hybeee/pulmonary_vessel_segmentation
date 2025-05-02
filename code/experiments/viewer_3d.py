@@ -93,8 +93,19 @@ def get_closest_graph_nodes_2(intersections, graph):
             if len(current_edge) == 0:
                 continue
 
+            if (np.array_equal(graph.nodes[u]['o'], np.array([99, 261, 387])) or np.array_equal(graph.nodes[v]['o'], np.array([99, 261, 387]))) and (np.array_equal(graph.nodes[u]['o'], intersection) or (np.array_equal(graph.nodes[v]['o'], intersection))):
+                print("----")
+                print(graph.nodes[u]['o'])
+                print(graph.nodes[v]['o'])
+                print(graph[81][171]['pts'])
+                print("----")
+
             for i in range(len(current_edge) - 1):
-                if point_on_segment(intersection, current_edge[i], current_edge[i + 1]):
+                if ((np.array_equal(intersection, current_edge[i])) or (np.array_equal(intersection, current_edge[i + 1]))):
+                # if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
+                    if (np.array_equal(graph.nodes[u]['o'], np.array([125, 266, 369])) or np.array_equal(graph.nodes[v]['o'], np.array([125, 266, 369]))):
+                        print("LOL")
+                        print(intersection)
                     ret_nodes.append(u)
                     ret_nodes.append(v)
                     found = True
@@ -196,7 +207,11 @@ def main():
 
     # plotter.add_mesh(vessel_mesh, color="orange", opacity=0.6, line_width=5)
     # plotter.add_mesh(vessel_skeleton_mesh, color="purple", opacity=0.6, line_width=5)
+    plotter.add_points(np.array([387, 261,  99]), color="yellow", point_size=15, render_points_as_spheres=True)
     plotter.add_points(i3d_points_bbox, color="black", point_size=10, render_points_as_spheres=True)
+    plotter.add_points(np.array([369, 266, 125]), color="green", point_size=15, render_points_as_spheres=True)
+    plotter.add_points(np.array([369, 265, 125]), color="blue", point_size=15, render_points_as_spheres=True)
+    plotter.add_points(np.array([369, 264, 125]), color="brown", point_size=15, render_points_as_spheres=True)
     plotter.add_mesh(bounding_box_1, color="green", opacity=0.4, style='wireframe')
     plotter.add_mesh(bounding_box_2, color="green", opacity=0.4, style='wireframe')
 

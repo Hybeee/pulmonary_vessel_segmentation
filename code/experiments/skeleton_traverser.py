@@ -29,7 +29,71 @@ def filter_nodes(nodes, bboxs):
 def get_distance(point1, point2):
     return np.linalg.norm(point1 - point2)
 
-def traverse_component(intersection_point, graph, visited_nodes, endpoints, edge_segment_start_index, step_size=1):
+def traverse_component(intersection_point, graph, endpoints, edge_segment_start_index, visited_nodes, step_size=3):
+    """
+    New implementation.
+    Intersection can be an edge_segment_point or on a specific edge_segment.
+    If intersection_point == edge_segment_point for a given index, then index marks the first edge_segment's index where intersection appears as the starting point
+    - or in other words: the index of the second appearance of intersection_point in current_edge
+    """
+
+    inner_node, outer_node = endpoints
+    prev_node = inner_node
+    next_node = outer_node
+    current_position = intersection_point
+
+    current_segment_start = -1
+    current_segment_end = -1
+    current_segment_index = edge_segment_start_index
+    remaining_step_size = step_size
+
+    future_nodes = []
+    visited_nodes.append(prev_node)
+
+    while next_node is not None:
+        current_edge = graph[prev_node][next_node]['pts']
+
+        while current_segment_index < len(current_edge) - 1:
+            current_segment_start = current_edge[current_segment_index]
+            current_segment_end = current_edge[current_segment_index + 1]
+
+            segment_length = get_distance(current_segment_start, current_segment_end)
+            if not np.array_equal(current_position, current_segment_start): # only true for the very first loop, when current_position is initialized as intersection_point
+                segment_length = get_distance(current_position, current_segment_end)
+
+            if segment_length == 0:
+                current_segment_index += 1
+                continue
+
+            if remaining_step_size > segment_length:
+                current_segment_index += 1
+                remaining_step_size -= segment_length
+            else:
+                current_position = current_segment_end
+                current_segment_index += 1
+                remaining_step_size = step_size
+
+            if current_segment_index == (len(current_edge) - 1):
+                    current_position = current_segment_end
+
+        visited_nodes.append(next_node)
+        next_node_neighbours = [n for n in graph[next_node].keys() if n != prev_node]
+        next_node_neighbours = [(next_node, n) for n in next_node_neighbours if n not in visited_nodes]
+
+        if len(next_node_neighbours) == 0:
+            if len(future_nodes) == 0:
+                break
+            else:
+                remaining_step_size = 0
+        else:
+            future_nodes = next_node_neighbours + future_nodes
+        
+        prev_node, next_node = future_nodes[0]
+        future_nodes = future_nodes[1:]
+        current_position = prev_node # probably redundant
+
+
+def traverse_component_old(intersection_point, graph, visited_nodes, endpoints, edge_segment_start_index, step_size=1):
     """
     Implements a DFS for traversing current component.
     NOTE: if two starting points have the same node as their closest nodes they might be on the same edge. What happens in this case? probably gets explored through one of
@@ -135,7 +199,7 @@ def main():
 
     edge_points = graph[0][7]['pts']
 
-    print(list(graph[0].keys()))
+    print(edge_points)
 
     # print(f"First: {edge_points[0]}\nLast: {edge_points[-1]}")
     # print(f"Node 1: {graph.nodes[0]['o']}\nNode 2: {graph.nodes[7]['o']}")
