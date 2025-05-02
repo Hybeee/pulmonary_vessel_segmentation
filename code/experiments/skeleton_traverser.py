@@ -3,6 +3,22 @@ import SimpleITK as sitk
 import numpy as np
 from viewer_3d import point_on_segment
 
+class Intersection:
+    """
+    Stores three intersection related points:
+        - Point of intersection
+        - Endpoints of the edge on which the point of intersection is:
+            - previous node - found inside the bounding box
+            - next node - found outside the bounding box
+    
+    NOTE: If the point of intersection is a node, then prev_node = next_node = intersection
+    """
+
+    def __init__(self, intersection, prev_node, next_node):
+        self.intersection = intersection
+        self.prev_node = prev_node
+        self.next_node = next_node
+
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
 
@@ -17,7 +33,17 @@ def filter_nodes_helper(node, bboxs):
 
     return False
 
-def filter_nodes(nodes, bboxs):
+def filter_nodes(graph, bboxs):
+    result = []
+
+    for node in graph.nodes:
+        node_coord = graph.nodes[node]['o']
+        if not filter_nodes_helper(node_coord, bboxs):
+            result.append(node)
+    
+    return np.array(result)
+
+def filter_nodes_old(nodes, bboxs):
     filtered_nodes = []
 
     for node in nodes:
@@ -25,6 +51,47 @@ def filter_nodes(nodes, bboxs):
             filtered_nodes.append(node)
 
     return np.array(filtered_nodes)
+
+def create_intersection_objects(intersections, graph, bboxs):
+    result = []
+    z, y, x = np.where(intersections > 0)
+    intersections = np.column_stack((z, y, x))
+
+    for intersection in intersections:
+        found = False
+        for (u, v) in graph.edges:
+            current_edge = graph[u][v]['pts']
+            if len(current_edge) == 0:
+                continue
+            
+            if (np.array_equal(intersection, graph[u]['o']) or np.array_equal(intersection, graph[v]['o'])):
+                intersection_obj = Intersection(intersection=intersection,
+                                                prev_node=intersection,
+                                                next_node=intersection)
+                result.append(intersection_obj)
+                found = True
+                break
+            
+            for i in range(len(current_edge) - 1):
+                if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
+                    prev_node = None
+                    next_node = None
+                    if filter_nodes_helper(u, bboxs):
+                        prev_node = u
+                        next_node = v
+                    else:
+                        prev_node = v
+                        next_node = u
+                    
+                    intersection_obj = Intersection(intersection=intersection,
+                                                    prev_node=prev_node,
+                                                    next_node=next_node)
+                    found = True
+                    break
+            if found:
+                break
+    
+    return np.array(result)
 
 def get_distance(point1, point2):
     return np.linalg.norm(point1 - point2)
@@ -193,7 +260,7 @@ def main():
     nodes = np.array([graph.nodes[node_id]['o'] for node_id in graph.nodes])
 
     # Stores nodes which are relevant wrt. traversing the graph
-    relevant_nodes = filter_nodes(nodes, bboxs)
+    relevant_nodes = filter_nodes_old(nodes, bboxs)
 
     print(f"Number of filtered nodes: {len(graph.nodes)} - {relevant_nodes.shape[0]} = {len(graph.nodes) - relevant_nodes.shape[0]}")
 
