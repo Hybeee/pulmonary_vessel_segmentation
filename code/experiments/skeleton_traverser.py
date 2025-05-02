@@ -1,7 +1,8 @@
 import sknw
 import SimpleITK as sitk
 import numpy as np
-from viewer_3d import point_on_segment
+from viewer_3d import point_on_segment, add_graph_to_plot
+import pyvista as pv
 
 class Intersection:
     """
@@ -25,6 +26,7 @@ def get_graph(skeleton):
 def filter_nodes_helper(node, bboxs):
     """
     Determines whether a given node is inside a bounding box - returns True - or not - returns False.
+    Points of the bounding boxes are considered as True.
     """
     for bbox in bboxs:
         z_start, z_end = bbox[0].start, bbox[0].stop
@@ -68,10 +70,10 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                 continue
             
             # Intersection point is a node
-            if (np.array_equal(intersection, graph[u]['o']) or np.array_equal(intersection, graph[v]['o'])):
-                if np.array_equal(intersection, graph[u]['o']):
+            if (np.array_equal(intersection, graph.nodes[u]['o']) or np.array_equal(intersection, graph.nodes[v]['o'])):
+                if np.array_equal(intersection, graph.nodes[u]['o']):
                     intersection_node = u
-                elif np.array_equal(intersection, graph[v]['o']):
+                elif np.array_equal(intersection, graph.nodes[v]['o']):
                     intersection_node = v
                 intersection_obj = Intersection(intersection=intersection,
                                                 prev_node=intersection_node,
@@ -85,7 +87,7 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                 if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
                     prev_node = None
                     next_node = None
-                    if filter_nodes_helper(u, bboxs):
+                    if filter_nodes_helper(graph.nodes[u]['o'], bboxs):
                         prev_node = u
                         next_node = v
                     else:
@@ -95,6 +97,7 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                     intersection_obj = Intersection(intersection=intersection,
                                                     prev_node=prev_node,
                                                     next_node=next_node)
+                    result.append(intersection_obj)
                     found = True
                     break
             if found:
@@ -254,6 +257,19 @@ def traverse_component_old(intersection_point, graph, visited_nodes, endpoints, 
         prev_node, next_node = future_nodes[0]
         current_position = prev_node
 
+def add_bbox_to_plot(plotter):
+    bounding_box_1 = pv.Box(bounds=(164, 241, 179, 275, 103, 223))
+    bounding_box_2 = pv.Box(bounds=(282, 369, 187, 294, 117, 225))
+
+    plotter.add_mesh(bounding_box_1, color="green", opacity=0.4, style='wireframe')
+    plotter.add_mesh(bounding_box_2, color="green", opacity=0.4, style='wireframe')
+
+def add_intersections_to_plot(plotter, intersections):
+    z, y, x = np.where(intersections > 0)
+    intersection_points = np.column_stack((x, y, z))
+
+    plotter.add_points(intersection_points, color="black", point_size=10, render_points_as_spheres=True)
+
 def main():
     skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
     skeleton = sitk.GetArrayFromImage(skeleton)
@@ -263,6 +279,27 @@ def main():
             [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
 
     graph = get_graph(skeleton=skeleton)
+
+    intersection_obj_list = create_intersection_objects(intersections=intersections, graph=graph, bboxs=bboxs)
+
+    print(intersection_obj_list.shape)
+
+    closest_nodes = np.array([
+        graph.nodes[intersection_obj.next_node]['o']
+        for intersection_obj in intersection_obj_list
+    ])
+
+    closest_nodes = closest_nodes[:, [2, 1, 0]]
+
+    plotter = pv.Plotter()
+    add_graph_to_plot(plotter=plotter, vessel_graph=graph)
+    add_bbox_to_plot(plotter=plotter)
+    add_intersections_to_plot(plotter=plotter, intersections=intersections)
+    plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
+    plotter.add_points(np.array([387, 261,  99]), color="yellow", point_size=15, render_points_as_spheres=True)
+
+    plotter.show_axes()
+    plotter.show()
 
 
 if __name__ == "__main__":
