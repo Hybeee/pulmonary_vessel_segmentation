@@ -6,12 +6,12 @@ from viewer_3d import point_on_segment
 class Intersection:
     """
     Stores three intersection related points:
-        - Point of intersection
+        - Point of intersection (point in the 3d space)
         - Endpoints of the edge on which the point of intersection is:
-            - previous node - found inside the bounding box
-            - next node - found outside the bounding box
+            - previous node - found inside the bounding box (id)
+            - next node - found outside the bounding box (id)
     
-    NOTE: If the point of intersection is a node, then prev_node = next_node = intersection
+    NOTE: If the point of intersection is a node, then prev_node = next_node = id of the node at position "intersection".
     """
 
     def __init__(self, intersection, prev_node, next_node):
@@ -23,6 +23,9 @@ def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
 
 def filter_nodes_helper(node, bboxs):
+    """
+    Determines whether a given node is inside a bounding box - returns True - or not - returns False.
+    """
     for bbox in bboxs:
         z_start, z_end = bbox[0].start, bbox[0].stop
         y_start, y_end = bbox[1].start, bbox[1].stop
@@ -52,7 +55,7 @@ def filter_nodes_old(nodes, bboxs):
 
     return np.array(filtered_nodes)
 
-def create_intersection_objects(intersections, graph, bboxs):
+def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Intersection]:
     result = []
     z, y, x = np.where(intersections > 0)
     intersections = np.column_stack((z, y, x))
@@ -64,14 +67,20 @@ def create_intersection_objects(intersections, graph, bboxs):
             if len(current_edge) == 0:
                 continue
             
+            # Intersection point is a node
             if (np.array_equal(intersection, graph[u]['o']) or np.array_equal(intersection, graph[v]['o'])):
+                if np.array_equal(intersection, graph[u]['o']):
+                    intersection_node = u
+                elif np.array_equal(intersection, graph[v]['o']):
+                    intersection_node = v
                 intersection_obj = Intersection(intersection=intersection,
-                                                prev_node=intersection,
-                                                next_node=intersection)
+                                                prev_node=intersection_node,
+                                                next_node=intersection_node)
                 result.append(intersection_obj)
                 found = True
                 break
             
+            # Intersection point is on the edge. Usually equals to current_edge[i], however not always
             for i in range(len(current_edge) - 1):
                 if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
                     prev_node = None
@@ -254,22 +263,6 @@ def main():
             [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
 
     graph = get_graph(skeleton=skeleton)
-
-    # print(graph.nodes[0]['o'])
-
-    nodes = np.array([graph.nodes[node_id]['o'] for node_id in graph.nodes])
-
-    # Stores nodes which are relevant wrt. traversing the graph
-    relevant_nodes = filter_nodes_old(nodes, bboxs)
-
-    print(f"Number of filtered nodes: {len(graph.nodes)} - {relevant_nodes.shape[0]} = {len(graph.nodes) - relevant_nodes.shape[0]}")
-
-    edge_points = graph[0][7]['pts']
-
-    print(edge_points)
-
-    # print(f"First: {edge_points[0]}\nLast: {edge_points[-1]}")
-    # print(f"Node 1: {graph.nodes[0]['o']}\nNode 2: {graph.nodes[7]['o']}")
 
 
 if __name__ == "__main__":

@@ -93,16 +93,16 @@ def get_closest_graph_nodes_2(intersections, graph):
             if len(current_edge) == 0:
                 continue
 
-            if (np.array_equal(graph.nodes[u]['o'], np.array([99, 261, 387])) or np.array_equal(graph.nodes[v]['o'], np.array([99, 261, 387]))) and (np.array_equal(graph.nodes[u]['o'], intersection) or (np.array_equal(graph.nodes[v]['o'], intersection))):
-                print("----")
-                print(graph.nodes[u]['o'])
-                print(graph.nodes[v]['o'])
-                print(graph[81][171]['pts'])
-                print("----")
+            # if (np.array_equal(graph.nodes[u]['o'], np.array([99, 261, 387])) or np.array_equal(graph.nodes[v]['o'], np.array([99, 261, 387]))) and (np.array_equal(graph.nodes[u]['o'], intersection) or (np.array_equal(graph.nodes[v]['o'], intersection))):
+            #     print("----")
+            #     print(graph.nodes[u]['o'])
+            #     print(graph.nodes[v]['o'])
+            #     print(graph[81][171]['pts'])
+            #     print("----")
 
             for i in range(len(current_edge) - 1):
-                if ((np.array_equal(intersection, current_edge[i])) or (np.array_equal(intersection, current_edge[i + 1]))):
-                # if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
+                # if ((np.array_equal(intersection, current_edge[i])) or (np.array_equal(intersection, current_edge[i + 1]))):
+                if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
                     if (np.array_equal(graph.nodes[u]['o'], np.array([125, 266, 369])) or np.array_equal(graph.nodes[v]['o'], np.array([125, 266, 369]))):
                         print("LOL")
                         print(intersection)
