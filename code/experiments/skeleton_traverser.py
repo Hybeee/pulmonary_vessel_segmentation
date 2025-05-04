@@ -16,10 +16,11 @@ class Intersection:
     NOTE: If the point of intersection is a node, then prev_node = next_node = id of the node at position "intersection".
     """
 
-    def __init__(self, intersection, prev_node, next_node):
+    def __init__(self, intersection, prev_node, next_node, section_index):
         self.intersection = intersection
         self.prev_node = prev_node
         self.next_node = next_node
+        self.section_index = section_index
 
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
@@ -196,6 +197,17 @@ def traverse_component(intersection_point, graph, endpoints, edge_segment_start_
         future_nodes = future_nodes[1:]
         current_position = prev_node # probably redundant
 
+def traverse_graph(graph, intersection_obj_list):
+    """
+    Only testing for now, traverses from one specific node.
+    """
+    intersection_obj_list = filter_intersections(intersection_obj_list) # no two intersection objects exist that are on the same edge
+    curr_intersection = None
+    for intersection in intersection_obj_list:
+        if np.array_equal(intersection.intersection, np.array([225, 234, 321])):
+            curr_intersection = intersection
+    
+    print(f"Intersection: {curr_intersection.intersection}\nPrevious node: {curr_intersection.prev_node}\nNext node: {curr_intersection.next_node}")
 
 def traverse_component_old(intersection_point, graph, visited_nodes, endpoints, edge_segment_start_index, step_size=1):
     """
@@ -340,6 +352,8 @@ def show_viewer(graph, intersections, intersection_obj_list):
     # plotter.add_points(np.array([310, 242, 117]), color='green', point_size=15, render_points_as_spheres=True)
     # plotter.add_points(np.array([315, 258, 129]), color='brown', point_size=15, render_points_as_spheres=True)
 
+    # labels = [str(tuple(intersection)) for intersection in fixed_intersections]
+    # plotter.add_point_labels(fixed_intersections, labels, font_size=12, point_size=10)
     plotter.show_axes()
     plotter.show()
 
@@ -355,7 +369,11 @@ def main():
 
     intersection_obj_list = create_intersection_objects(intersections=intersections, graph=graph, bboxs=bboxs)
 
-    show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list)
+    # print(graph[522][621]['pts'])
+
+    # traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list)
+
+    # show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list)
 
 
 if __name__ == "__main__":
