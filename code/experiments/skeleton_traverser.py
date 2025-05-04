@@ -122,10 +122,10 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                         prev_node = v
                         next_node = u
 
-                    if np.array_equal(intersection, np.array([225, 234, 321])):
-                        print(f"Node: {u}, coord: {graph.nodes[u]['o']}")
-                        print(f"Node: {v}, coord: {graph.nodes[v]['o']}")
-                        print(f"Edge segment(i): {i} | ith edge: {current_edge[i]} | i+1th edge: {current_edge[i+1]}")
+                    # if np.array_equal(intersection, np.array([225, 234, 321])):
+                    #     print(f"Node: {u}, coord: {graph.nodes[u]['o']}")
+                    #     print(f"Node: {v}, coord: {graph.nodes[v]['o']}")
+                    #     print(f"Edge segment(i): {i} | ith edge: {current_edge[i]} | i+1th edge: {current_edge[i+1]}")
 
                     if np.array_equal(intersection, current_edge[i]):
                         segment_index = i
@@ -167,6 +167,7 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
     prev_node = inner_node
     next_node = outer_node
     current_position = intersection_obj.intersection
+    initialized = False
 
     current_segment_start = -1
     current_segment_end = -1
@@ -176,7 +177,10 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
     future_nodes = []
     visited_nodes.append(prev_node)
 
+    traversed_nodes = []
+
     while next_node is not None:
+        traversed_nodes.append(next_node)
         current_edge = graph[prev_node][next_node]['pts']
 
         while current_segment_index < len(current_edge) - 1:
@@ -184,8 +188,10 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
             current_segment_end = current_edge[current_segment_index + 1]
 
             segment_length = get_distance(current_segment_start, current_segment_end)
-            if not np.array_equal(current_position, current_segment_start): # only true for the very first loop, when current_position is initialized as intersection_point
+            if not np.array_equal(current_position, current_segment_start) and not initialized: # only true for the very first loop, when current_position is initialized as intersection_point
                 segment_length = get_distance(current_position, current_segment_end)
+
+            initialized = True
 
             if segment_length == 0:
                 current_segment_index += 1
@@ -218,6 +224,8 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
         future_nodes = future_nodes[1:]
         current_position = prev_node # probably redundant
 
+    return np.array(traversed_nodes)
+
 def traverse_graph(graph, intersection_obj_list):
     """
     Only testing for now, traverses from one specific node.
@@ -228,7 +236,9 @@ def traverse_graph(graph, intersection_obj_list):
         if np.array_equal(intersection.intersection, np.array([225, 234, 321])):
             curr_intersection = intersection
     
-    print(f"Intersection: {curr_intersection.intersection}\nPrevious node: {curr_intersection.prev_node}\nNext node: {curr_intersection.next_node}\nSection index: {curr_intersection.segment_index}")
+    # print(f"Intersection: {curr_intersection.intersection}\nPrevious node: {curr_intersection.prev_node}\nNext node: {curr_intersection.next_node}\nSection index: {curr_intersection.segment_index}")
+
+    return traverse_component(curr_intersection, graph, [], step_size=3)
 
 def traverse_component_old(intersection_point, graph, visited_nodes, endpoints, edge_segment_start_index, step_size=1):
     """
@@ -341,35 +351,38 @@ def filter_intersections(intersection_obj_list):
     
     return np.array(result)
 
-def show_viewer(graph, intersections, intersection_obj_list):
-    intersection_obj_list = filter_intersections(intersection_obj_list)
-    fixed_intersections = np.array([
-        intersection.intersection
-        for intersection in intersection_obj_list
-    ])
+def show_viewer(graph, intersections, intersection_obj_list, traversed_nodes):
+    traversed_nodes = np.array([graph.nodes[node]['o'] for node in traversed_nodes])
+    traversed_nodes = traversed_nodes[:, [2, 1, 0]]
+    # intersection_obj_list = filter_intersections(intersection_obj_list)
+    # fixed_intersections = np.array([
+    #     intersection.intersection
+    #     for intersection in intersection_obj_list
+    # ])
 
-    fixed_intersections = fixed_intersections[:, [2, 1, 0]]
+    # fixed_intersections = fixed_intersections[:, [2, 1, 0]]
 
-    closest_nodes = np.array([
-        graph.nodes[intersection_obj.next_node]['o']
-        for intersection_obj in intersection_obj_list
-    ])
+    # closest_nodes = np.array([
+    #     graph.nodes[intersection_obj.next_node]['o']
+    #     for intersection_obj in intersection_obj_list
+    # ])
 
-    bboxs = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
-            [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
+    # bboxs = [[slice(103, 223, None), slice(179, 275, None), slice(164, 241, None)],
+    #         [slice(117, 225, None), slice(187, 294, None), slice(282, 369, None)]]
 
     # for closest_node in closest_nodes:
     #     if filter_nodes_helper_2(closest_node, bboxs):
     #         print(closest_node)
 
-    closest_nodes = closest_nodes[:, [2, 1, 0]]
+    # closest_nodes = closest_nodes[:, [2, 1, 0]]
 
     plotter = pv.Plotter()
     add_graph_to_plot(plotter=plotter, vessel_graph=graph)
     add_bbox_to_plot(plotter=plotter)
     add_intersections_to_plot(plotter=plotter, intersections=intersections)
-    plotter.add_points(fixed_intersections, color="blue", point_size=10, render_points_as_spheres=True)
-    plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
+    # plotter.add_points(fixed_intersections, color="blue", point_size=10, render_points_as_spheres=True)
+    # plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
+    plotter.add_points(traversed_nodes, color='green', point_size=10, render_points_as_spheres=True)
     # plotter.add_points(np.array([310, 242, 117]), color='green', point_size=15, render_points_as_spheres=True)
     # plotter.add_points(np.array([315, 258, 129]), color='brown', point_size=15, render_points_as_spheres=True)
 
@@ -390,9 +403,11 @@ def main():
 
     intersection_obj_list = create_intersection_objects(intersections=intersections, graph=graph, bboxs=bboxs)
 
-    traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list)
+    # print(graph[522][621]['pts'])
 
-    # show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list)
+    traversed_nodes = traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list)
+
+    show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list, traversed_nodes=traversed_nodes)
 
 
 if __name__ == "__main__":
