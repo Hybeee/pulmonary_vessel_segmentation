@@ -18,11 +18,11 @@ class Intersection:
     NOTE: If the point of intersection is a node, then prev_node = next_node = id of the node at position "intersection".
     """
 
-    def __init__(self, intersection, prev_node, next_node, section_index):
+    def __init__(self, intersection, prev_node, next_node, segment_index):
         self.intersection = intersection
         self.prev_node = prev_node
         self.next_node = next_node
-        self.section_index = section_index
+        self.segment_index = segment_index
 
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
@@ -95,17 +95,17 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
             if len(current_edge) == 0:
                 continue
             
-            # Intersection point is a node -> section_index = 0
+            # Intersection point is a node -> segment_index = 0
             if (np.array_equal(intersection, graph.nodes[u]['o']) or np.array_equal(intersection, graph.nodes[v]['o'])):
                 if np.array_equal(intersection, graph.nodes[u]['o']):
                     intersection_node = u
                 elif np.array_equal(intersection, graph.nodes[v]['o']):
                     intersection_node = v
-                section_index = 0
+                segment_index = 0
                 intersection_obj = Intersection(intersection=intersection,
                                                 prev_node=intersection_node,
                                                 next_node=intersection_node,
-                                                section_index=section_index)
+                                                segment_index=segment_index)
                 result.append(intersection_obj)
                 found = True
                 break
@@ -128,18 +128,18 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                         print(f"Edge segment(i): {i} | ith edge: {current_edge[i]} | i+1th edge: {current_edge[i+1]}")
 
                     if np.array_equal(intersection, current_edge[i]):
-                        section_index = i
+                        segment_index = i
                     elif np.array_equal(intersection, current_edge[i+1]):
-                        section_index = i + 1
+                        segment_index = i + 1
                     else:
-                        section_index = i
+                        segment_index = i
 
                     # QUESTION: can you discard an intersection point for which next_node is also an intersection point? will do for now
                     if not is_node_intersection(graph.nodes[next_node]['o'], intersections) and not is_node_intersection(graph.nodes[prev_node]['o'], intersections):
                         intersection_obj = Intersection(intersection=intersection,
                                                         prev_node=prev_node,
                                                         next_node=next_node,
-                                                        section_index=section_index)
+                                                        segment_index=segment_index)
                         result.append(intersection_obj)
                     found = True
                     break
@@ -151,22 +151,26 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
 def get_distance(point1, point2):
     return np.linalg.norm(point1 - point2)
 
-def traverse_component(intersection_point, graph, endpoints, edge_segment_start_index, visited_nodes, step_size=3):
+def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
     """
     New implementation.
     Intersection can be an edge_segment_point or on a specific edge_segment.
     If intersection_point == edge_segment_point for a given index, then index marks the first edge_segment's index where intersection appears as the starting point
     - or in other words: the index of the second appearance of intersection_point in current_edge
+
+    TODO: Since current testing doesn't involve such intersection, later the code should be modified so that if an intersection IS a node then before traversing its component
+    the future_nodes list should be filled with its neighbours.
     """
 
-    inner_node, outer_node = endpoints
+    inner_node = intersection_obj.prev_node
+    outer_node = intersection_obj.next_node
     prev_node = inner_node
     next_node = outer_node
-    current_position = intersection_point
+    current_position = intersection_obj.intersection
 
     current_segment_start = -1
     current_segment_end = -1
-    current_segment_index = edge_segment_start_index
+    current_segment_index = intersection_obj.segment_index
     remaining_step_size = step_size
 
     future_nodes = []
@@ -224,7 +228,7 @@ def traverse_graph(graph, intersection_obj_list):
         if np.array_equal(intersection.intersection, np.array([225, 234, 321])):
             curr_intersection = intersection
     
-    print(f"Intersection: {curr_intersection.intersection}\nPrevious node: {curr_intersection.prev_node}\nNext node: {curr_intersection.next_node}\nSection index: {curr_intersection.section_index}")
+    print(f"Intersection: {curr_intersection.intersection}\nPrevious node: {curr_intersection.prev_node}\nNext node: {curr_intersection.next_node}\nSection index: {curr_intersection.segment_index}")
 
 def traverse_component_old(intersection_point, graph, visited_nodes, endpoints, edge_segment_start_index, step_size=1):
     """
