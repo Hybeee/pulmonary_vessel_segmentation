@@ -5,6 +5,8 @@ from viewer_3d import point_on_segment, add_graph_to_plot
 import pyvista as pv
 from collections import defaultdict
 
+# TODO: smaller bbox on the bottom. Two nodes(?, probably) are both intersections. However only one is considered. Might be a mistake in the logic somewhere
+
 class Intersection:
     """
     Stores three intersection related points:
@@ -93,20 +95,22 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
             if len(current_edge) == 0:
                 continue
             
-            # Intersection point is a node
+            # Intersection point is a node -> section_index = 0
             if (np.array_equal(intersection, graph.nodes[u]['o']) or np.array_equal(intersection, graph.nodes[v]['o'])):
                 if np.array_equal(intersection, graph.nodes[u]['o']):
                     intersection_node = u
                 elif np.array_equal(intersection, graph.nodes[v]['o']):
                     intersection_node = v
+                section_index = 0
                 intersection_obj = Intersection(intersection=intersection,
                                                 prev_node=intersection_node,
-                                                next_node=intersection_node)
+                                                next_node=intersection_node,
+                                                section_index=section_index)
                 result.append(intersection_obj)
                 found = True
                 break
-            
-            # Intersection point is on the edge. Usually equals to current_edge[i], however not always
+
+            # Intersection point is on the edge.
             for i in range(len(current_edge) - 1):
                 if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
                     prev_node = None
@@ -118,11 +122,24 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                         prev_node = v
                         next_node = u
 
+                    if np.array_equal(intersection, np.array([225, 234, 321])):
+                        print(f"Node: {u}, coord: {graph.nodes[u]['o']}")
+                        print(f"Node: {v}, coord: {graph.nodes[v]['o']}")
+                        print(f"Edge segment(i): {i} | ith edge: {current_edge[i]} | i+1th edge: {current_edge[i+1]}")
+
+                    if np.array_equal(intersection, current_edge[i]):
+                        section_index = i
+                    elif np.array_equal(intersection, current_edge[i+1]):
+                        section_index = i + 1
+                    else:
+                        section_index = i
+
                     # QUESTION: can you discard an intersection point for which next_node is also an intersection point? will do for now
                     if not is_node_intersection(graph.nodes[next_node]['o'], intersections) and not is_node_intersection(graph.nodes[prev_node]['o'], intersections):
                         intersection_obj = Intersection(intersection=intersection,
                                                         prev_node=prev_node,
-                                                        next_node=next_node)
+                                                        next_node=next_node,
+                                                        section_index=section_index)
                         result.append(intersection_obj)
                     found = True
                     break
@@ -207,7 +224,7 @@ def traverse_graph(graph, intersection_obj_list):
         if np.array_equal(intersection.intersection, np.array([225, 234, 321])):
             curr_intersection = intersection
     
-    print(f"Intersection: {curr_intersection.intersection}\nPrevious node: {curr_intersection.prev_node}\nNext node: {curr_intersection.next_node}")
+    print(f"Intersection: {curr_intersection.intersection}\nPrevious node: {curr_intersection.prev_node}\nNext node: {curr_intersection.next_node}\nSection index: {curr_intersection.section_index}")
 
 def traverse_component_old(intersection_point, graph, visited_nodes, endpoints, edge_segment_start_index, step_size=1):
     """
@@ -369,9 +386,7 @@ def main():
 
     intersection_obj_list = create_intersection_objects(intersections=intersections, graph=graph, bboxs=bboxs)
 
-    # print(graph[522][621]['pts'])
-
-    # traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list)
+    traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list)
 
     # show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list)
 

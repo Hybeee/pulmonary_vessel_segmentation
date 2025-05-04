@@ -63,7 +63,7 @@ def filter_nodes_2(graph, bboxs):
 def get_distance(point1, point2):
     return np.linalg.norm(point1 - point2)
 
-def point_on_segment(p, a, b, eps=1):
+def point_on_segment(p, a, b, eps=0.1):
     ab = b - a
     ap = p - a
     cross = np.cross(ab, ap)
