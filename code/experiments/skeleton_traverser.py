@@ -18,11 +18,12 @@ class Intersection:
     NOTE: If the point of intersection is a node, then prev_node = next_node = id of the node at position "intersection".
     """
 
-    def __init__(self, intersection, prev_node, next_node, segment_index):
+    def __init__(self, intersection, prev_node, next_node, segment_index, is_node):
         self.intersection = intersection
         self.prev_node = prev_node
         self.next_node = next_node
         self.segment_index = segment_index
+        self.is_node = is_node
 
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
@@ -105,7 +106,8 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                 intersection_obj = Intersection(intersection=intersection,
                                                 prev_node=intersection_node,
                                                 next_node=intersection_node,
-                                                segment_index=segment_index)
+                                                segment_index=segment_index,
+                                                is_node=True)
                 result.append(intersection_obj)
                 found = True
                 break
@@ -139,7 +141,8 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                         intersection_obj = Intersection(intersection=intersection,
                                                         prev_node=prev_node,
                                                         next_node=next_node,
-                                                        segment_index=segment_index)
+                                                        segment_index=segment_index,
+                                                        is_node=False)
                         result.append(intersection_obj)
                     found = True
                     break
@@ -160,6 +163,8 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
 
     TODO: Since current testing doesn't involve such intersection, later the code should be modified so that if an intersection IS a node then before traversing its component
     the future_nodes list should be filled with its neighbours.
+
+    NOTE: Most distances are sqrt(1) or sqrt(2). Does sqrt(3) exist? Might have to check later.
     """
 
     inner_node = intersection_obj.prev_node
@@ -340,7 +345,7 @@ def add_intersections_to_plot(plotter, intersections):
 
 def filter_intersections(intersection_obj_list):
     result = []
-    node_dict = defaultdict(list) 
+    node_dict = defaultdict(list)
 
     for intersection in intersection_obj_list:
         node_dict[(intersection.prev_node, intersection.next_node)].append(intersection)
