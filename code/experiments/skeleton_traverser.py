@@ -161,16 +161,21 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
     If intersection_point == edge_segment_point for a given index, then index marks the first edge_segment's index where intersection appears as the starting point
     - or in other words: the index of the second appearance of intersection_point in current_edge
 
-    TODO: Since current testing doesn't involve such intersection, later the code should be modified so that if an intersection IS a node then before traversing its component
-    the future_nodes list should be filled with its neighbours.
-
     NOTE: Most distances are sqrt(1) or sqrt(2). Does sqrt(3) exist? Might have to check later.
     """
 
-    inner_node = intersection_obj.prev_node
-    outer_node = intersection_obj.next_node
-    prev_node = inner_node
-    next_node = outer_node
+    if intersection_obj.is_node:
+        # prev_node = next_node = intersection point's node's id
+        neighbours = [n for n in graph.nodes[intersection_obj.next_node].keys()]
+        neighbours = [(intersection_obj.next_node, n) for n in neighbours if n not in visited_nodes]
+        future_nodes = neighbours
+        prev_node, next_node = future_nodes[0]
+        future_nodes = future_nodes[1:]
+    else:
+        prev_node = intersection_obj.prev_node
+        next_node = intersection_obj.next_node
+        future_nodes = []
+
     current_position = intersection_obj.intersection
     initialized = False
 
@@ -178,8 +183,7 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
     current_segment_end = -1
     current_segment_index = intersection_obj.segment_index
     remaining_step_size = step_size
-
-    future_nodes = []
+    
     visited_nodes.append(prev_node)
 
     traversed_nodes = []
@@ -227,7 +231,7 @@ def traverse_component(intersection_obj, graph, visited_nodes, step_size=3):
         
         prev_node, next_node = future_nodes[0]
         future_nodes = future_nodes[1:]
-        current_position = prev_node # probably redundant
+        current_position = prev_node # probably redundant | UPDATE: not redundant. For example when a path is traversed and the function returns to a 'crossroad' of the component
 
     return np.array(traversed_nodes)
 
