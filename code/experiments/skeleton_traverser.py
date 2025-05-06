@@ -431,7 +431,7 @@ def show_viewer(graph, intersections, intersection_obj_list, traversed_nodes):
     # plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
     plotter.add_points(traversed_nodes, color='green', point_size=10, render_points_as_spheres=True)
     # plotter.add_points(np.array([310, 242, 117]), color='green', point_size=15, render_points_as_spheres=True)
-    # plotter.add_points(np.array([207, 200, 183]), color='brown', point_size=15, render_points_as_spheres=True)
+    plotter.add_points(np.array(graph.nodes[444]['o'])[[2, 1, 0]], color='brown', point_size=15, render_points_as_spheres=True)
 
     # labels = [str(tuple(intersection)) for intersection in traversed_nodes]
     # plotter.add_point_labels(traversed_nodes, labels, font_size=12, point_size=10)
@@ -454,6 +454,10 @@ def main():
 
     # traversed_nodes = traverse_graph_from_point(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
     traversed_nodes = traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
+
+    u, c = np.unique(traversed_nodes, return_counts=True)
+    dup = u[c > 1]
+    print(dup)
 
     show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list, traversed_nodes=traversed_nodes)
 
