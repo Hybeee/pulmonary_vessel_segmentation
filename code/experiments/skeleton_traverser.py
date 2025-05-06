@@ -25,6 +25,9 @@ class Intersection:
         self.segment_index = segment_index
         self.is_node = is_node
 
+    def __str__(self):
+        return f"Intersection: {self.intersection}\nNode: {self.is_node}"
+
 def get_graph(skeleton):
     return sknw.build_sknw(skeleton)
 
@@ -267,7 +270,7 @@ def traverse_graph(graph, intersection_obj_list, bboxs):
         traversed_nodes_curr = traverse_component(intersection, graph, visited_nodes, bboxs, step_size=3)
         traversed_nodes.extend(traversed_nodes_curr)
     
-    return np.array(visited_nodes)
+    return np.array(traversed_nodes)
 
 def traverse_graph_from_point(graph, intersection_obj_list, bboxs):
     """
@@ -428,10 +431,10 @@ def show_viewer(graph, intersections, intersection_obj_list, traversed_nodes):
     # plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
     plotter.add_points(traversed_nodes, color='green', point_size=10, render_points_as_spheres=True)
     # plotter.add_points(np.array([310, 242, 117]), color='green', point_size=15, render_points_as_spheres=True)
-    # plotter.add_points(np.array([310, 241, 117]), color='brown', point_size=15, render_points_as_spheres=True)
+    # plotter.add_points(np.array([207, 200, 183]), color='brown', point_size=15, render_points_as_spheres=True)
 
-    # labels = [str(tuple(intersection)) for intersection in fixed_intersections]
-    # plotter.add_point_labels(fixed_intersections, labels, font_size=12, point_size=10)
+    # labels = [str(tuple(intersection)) for intersection in traversed_nodes]
+    # plotter.add_point_labels(traversed_nodes, labels, font_size=12, point_size=10)
     plotter.show_axes()
     plotter.show()
 
