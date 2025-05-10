@@ -5,7 +5,6 @@ from viewer_3d import point_on_segment, add_graph_to_plot
 import pyvista as pv
 from collections import defaultdict
 
-# TODO: smaller bbox on the bottom. Two nodes(?, probably) are both intersections. However only one is considered. Might be a mistake in the logic somewhere
 
 class Intersection:
     """
@@ -15,7 +14,6 @@ class Intersection:
             - previous node - found inside the bounding box (id)
             - next node - found outside the bounding box (id)
     
-    NOTE: If the point of intersection is a node, then prev_node = next_node = id of the node at position "intersection".
     """
 
     def __init__(self, intersection, prev_node, next_node, segment_index, is_node):
@@ -142,6 +140,14 @@ def create_intersection_objects(intersections, graph, bboxs) -> np.ndarray[Inter
                     else:
                         prev_node = v
                         next_node = u
+
+                    # if not np.array_equal(intersection, current_edge[i]) and not np.array_equal(intersection, current_edge[i+1]):
+                    #     print(intersection)
+
+                    # if np.array_equal(intersection, [125, 265, 369]):
+                    #     print(f"curr_edge start: {current_edge[i]}")
+                    #     print(f"curr_edge end: {current_edge[i+1]}")
+                    #     print(f"curr_edge: {current_edge}")
 
                     # if np.array_equal(intersection, np.array([225, 234, 321])):
                     #     print(f"Node: {u}, coord: {graph.nodes[u]['o']}")
@@ -427,10 +433,10 @@ def show_viewer(graph, intersections, intersection_obj_list, traversed_nodes):
     add_graph_to_plot(plotter=plotter, vessel_graph=graph)
     add_bbox_to_plot(plotter=plotter)
     # add_intersections_to_plot(plotter=plotter, intersections=intersections)
-    plotter.add_points(fixed_intersections, color="blue", point_size=15, render_points_as_spheres=True)
+    # plotter.add_points(fixed_intersections, color="blue", point_size=15, render_points_as_spheres=True)
     # plotter.add_points(closest_nodes, color='purple', point_size=10, render_points_as_spheres=True)
-    plotter.add_points(traversed_nodes, color='green', point_size=10, render_points_as_spheres=True)
-    # plotter.add_points(np.array([310, 242, 117]), color='green', point_size=15, render_points_as_spheres=True)
+    # plotter.add_points(traversed_nodes, color='green', point_size=10, render_points_as_spheres=True)
+    plotter.add_points(np.array([369, 265, 125]), color='green', point_size=15, render_points_as_spheres=True)
     plotter.add_points(np.array(graph.nodes[444]['o'])[[2, 1, 0]], color='brown', point_size=15, render_points_as_spheres=True)
 
     # labels = [str(tuple(intersection)) for intersection in traversed_nodes]
@@ -448,18 +454,18 @@ def main():
 
     graph = get_graph(skeleton=skeleton)
 
-    intersection_obj_list = create_intersection_objects(intersections=intersections, graph=graph, bboxs=bboxs)
+    # intersection_obj_list = create_intersection_objects(intersections=intersections, graph=graph, bboxs=bboxs)
 
-    # print(graph[522][621]['pts'])
+    # # print(graph[522][621]['pts'])
 
-    # traversed_nodes = traverse_graph_from_point(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
-    traversed_nodes = traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
+    # # traversed_nodes = traverse_graph_from_point(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
+    # traversed_nodes = traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
 
-    u, c = np.unique(traversed_nodes, return_counts=True)
-    dup = u[c > 1]
-    print(dup)
+    # u, c = np.unique(traversed_nodes, return_counts=True)
+    # dup = u[c > 1]
+    # print(dup)
 
-    show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list, traversed_nodes=traversed_nodes)
+    # show_viewer(graph=graph, intersections=intersections, intersection_obj_list=intersection_obj_list, traversed_nodes=traversed_nodes)
 
 
 if __name__ == "__main__":
