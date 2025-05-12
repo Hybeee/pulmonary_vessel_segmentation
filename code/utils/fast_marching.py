@@ -31,8 +31,10 @@ def create_deskeleton_map(skeleton, mask_orig, pixel_spacing):
 
     n_dim = skeleton.ndim
     min_neighbor_map = find_min_neighbor(travel_times, mask_orig, nbs)
+    min_neighbor_map = np.where(mask_orig==0, -1, min_neighbor_map) # -1 outside the mask
     # unravel
     min_neighbor_map = min_neighbor_map[tuple([slice(1, -1)] * n_dim)]
+    min_neighbor_map = np.where(skeleton==1, -1, min_neighbor_map) # -1 along the skeleton
 
     return min_neighbor_map
 
@@ -41,7 +43,7 @@ def find_min_neighbor(times, mask, nbs):
     shape_orig = times.shape
     times = times.ravel()
     mask = mask.ravel()
-    min_neighbor_map = np.zeros(mask.shape, dtype=np.uint8)
+    min_neighbor_map = np.zeros(mask.shape, dtype=np.int8)
 
     for p in range(len(times)):
         min_val = np.inf
@@ -111,7 +113,8 @@ def deskeletonize_helper(skeleton, mask_orig, deskeleton_map, nbs):
             for nb_i in range(len(nbs)):
                 p_nb = p + nbs[nb_i]
                 if mask_orig[p_nb] == 0: continue
-                if deskeletonized[p_nb] != 0: continue # TODO optimize: we can use mask orig for this purpose, also ravel is just a view
+                if deskeleton_map[p_nb] == -1: continue
+                if deskeletonized[p_nb] != 0: continue # TODO optimize: we can use mask orig for this purpose (it's a copy), also ravel is just a view
                 nb_source_arg_d = deskeleton_map[p_nb]
                 nb_source_d = nbs[nb_source_arg_d]
                 nb_source = p_nb + nb_source_d
