@@ -2,8 +2,15 @@ import numpy as np
 import SimpleITK as sitk
 from numba import jit
 
+# ONLY FOR TESTING
+from scan_plotter import view_scan
+
 
 def neighbors(shape):
+    """
+    Given a pixel in the 2D/3D space returns an array containing its neighbouring pixel/voxel indices.
+    """
+
     dim = len(shape)
     block = np.ones([3] * dim)
     block[tuple([1] * dim)] = 0
@@ -17,7 +24,7 @@ def create_deskeleton_map(skeleton, mask_orig, pixel_spacing):
     assert skeleton.shape == mask_orig.shape, 'All arrays must have the same shape'
     skeleton = skeleton.astype(np.uint8)
     fast_marching = sitk.FastMarchingImageFilter()
-    seed_points = np.argwhere(skeleton == 1)[:, ::-1]  # shape: (3, -1)
+    seed_points = np.argwhere(skeleton == 1)[:, ::-1]  # shape: (3, -1) | seed_point <=> fast marching starts from here, needed for trial points.
     fast_marching.SetTrialPoints(seed_points.tolist())
     speed_image = mask_orig.astype(np.uint8)
     speed_image_sitk = sitk.GetImageFromArray(speed_image)
@@ -124,3 +131,23 @@ def deskeletonize_helper(skeleton, mask_orig, deskeleton_map, nbs):
                 to_update_idx += 1
 
     return deskeletonized.reshape(shape_orig)
+
+def main():
+    ct = sitk.ReadImage("dataset/HiPaS/ct_scan_nii/005.nii.gz")
+    ct = sitk.GetArrayFromImage(ct)
+    vein_mask = sitk.ReadImage("dataset/HiPaS/annotation/vein_nii/005.nii.gz")
+    vein_mask = sitk.GetArrayFromImage(vein_mask)
+
+    spacing = [0.7109375, 0.7109375, 1.0]
+
+    skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
+    skeleton = sitk.GetArrayFromImage(skeleton)
+
+    ret = create_deskeleton_map(skeleton, vein_mask, spacing)
+
+    deskeletonized = deskeletonize(skeleton, vein_mask, ret)
+
+    view_scan([deskeletonized, vein_mask])
+
+if __name__ == "__main__":
+    main()
