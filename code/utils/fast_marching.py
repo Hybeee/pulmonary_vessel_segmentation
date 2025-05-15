@@ -118,10 +118,10 @@ def deskeletonize_helper(skeleton, mask_orig, deskeleton_map, nbs):
             p = lists[current_list][current_idx]
             skeleton_value = deskeletonized[p]
             for nb_i in range(len(nbs)):
-                p_nb = p + nbs[nb_i]
-                if mask_orig[p_nb] == 0: continue
-                if deskeleton_map[p_nb] == -1: continue
-                if deskeletonized[p_nb] != 0: continue # TODO optimize: we can use mask orig for this purpose (it's a copy), also ravel is just a view
+                p_nb = p + nbs[nb_i] # index of neighbour
+                if mask_orig[p_nb] == 0: continue # not part of mask
+                if deskeleton_map[p_nb] == -1: continue # pixel is part of skeleton
+                if deskeletonized[p_nb] != 0: continue # TODO optimize: we can use mask orig for this purpose (it's a copy), also ravel is just a view | neighbour is already part of reconstructed skeleton
                 nb_source_arg_d = deskeleton_map[p_nb]
                 nb_source_d = nbs[nb_source_arg_d]
                 nb_source = p_nb + nb_source_d
@@ -147,7 +147,7 @@ def main():
 
     deskeletonized = deskeletonize(skeleton, vein_mask, ret)
 
-    view_scan([deskeletonized, vein_mask])
+    view_scan([deskeletonized])
 
 if __name__ == "__main__":
     main()
