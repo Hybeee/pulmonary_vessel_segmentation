@@ -132,6 +132,19 @@ def deskeletonize_helper(skeleton, mask_orig, deskeleton_map, nbs):
 
     return deskeletonized.reshape(shape_orig)
 
+def segment_to_volume(coords, volume_shape):
+    """
+    Convert a list of coordinates to a binary volume.
+    
+    coords: list or array of coordinates (each coordinate is a 3-element array)
+    volume_shape: tuple with the shape of the volume (e.g. skeleton.shape)
+    """
+
+    volume = np.zeros(volume_shape, dtype=np.uint8)
+    for c in coords:
+        volume[tuple(c)] = 1
+    return volume
+
 def main():
     ct = sitk.ReadImage("dataset/HiPaS/ct_scan_nii/005.nii.gz")
     ct = sitk.GetArrayFromImage(ct)
@@ -143,9 +156,17 @@ def main():
     skeleton = sitk.ReadImage('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
     skeleton = sitk.GetArrayFromImage(skeleton)
 
-    ret = create_deskeleton_map(skeleton, vein_mask, spacing)
+    segment_coords = [np.array([103, 257, 213], dtype=np.int64),
+                  np.array([101, 257, 214], dtype=np.int16),
+                  np.array([100, 256, 214], dtype=np.int16)]
 
-    deskeletonized = deskeletonize(skeleton, vein_mask, ret)
+    segment_coords = np.array(segment_coords)
+
+    deskeleton_map = create_deskeleton_map(skeleton, vein_mask, spacing)
+
+    skeleton = segment_to_volume(segment_coords, skeleton.shape)
+
+    deskeletonized = deskeletonize(skeleton, vein_mask, deskeleton_map)
 
     view_scan([deskeletonized])
 

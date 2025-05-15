@@ -249,6 +249,8 @@ def traverse_component(intersection_obj, graph, visited_nodes, bboxs, step_size=
                         accumulated = True
             
             if accumulated:
+                if np.array_equal(intersection_obj.intersection, [103, 257, 213]):
+                    print(accumulator)
                 traversed_paths.extend(accumulator)
                 accumulated = False
                 accumulator = []
@@ -279,7 +281,7 @@ def traverse_graph(graph, intersection_obj_list, bboxs):
     traversed_paths = []
 
     for intersection in intersection_obj_list:
-        # print(f"Traversing from intersection: {intersection.intersection}")
+        print(f"Traversing from intersection: {intersection.intersection}")
         traversed_nodes_curr, traversed_paths_curr = traverse_component(intersection, graph, visited_nodes, bboxs, step_size=3)
         traversed_nodes.extend(traversed_nodes_curr)
         traversed_paths.extend(traversed_paths_curr)
