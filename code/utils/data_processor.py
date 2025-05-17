@@ -14,11 +14,7 @@ class DataHandler:
     Initialized by the following steps:\n
         - Creates the skeleton to the original mask of the CT image (meaning vein and artery masks)
         - For each ct scan determines the intersection points of a given bounding box and the skeleton
-    NOTE: should bbox be created here? should bbox be given as a parameter\n
-    NOTE: Implementation of current class will probably change a lot in the future, the important part currently is the core.
-    NOTE: Whether a parameter will be a tensor or an ndarray will be determined later - probably depends on the parameter
-    
-    TODO: Separate masks for vein and artery masks.
+
     TODO: The class will probably need to be rewritten into a Dataset class (torch.utils.data.Dataset). This is because this class will have
           features that will be used during training. Thus it makes more sense to integrate Dataset related features here rather than splitting it
           accross multiple classes.
