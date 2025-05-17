@@ -34,22 +34,29 @@ class DataHandler:
     pulmonary_masks = None:
         Pulmonary vein binary masks for the ct scans - if provided by caller, will probably be an ndarray
     """
-    def __init__(self, cts: np.ndarray, masks: np.ndarray, spacings: np.ndarray, pulmonary_masks: np.ndarray = None):
-        # Initializing attributes
+    def __init__(self, cts: np.ndarray, artery_masks: np.ndarray, vein_masks: np.ndarray, spacings: np.ndarray, pulmonary_masks: np.ndarray = None):
+        # NORMAL ATTRIBUTES
         self.cts = cts
-        self.masks = masks
-        self.np_cts = cts.cpu().numpy()
-        self.np_masks = masks.cpu().numpy()
-        self.np_spacings = spacings
+        self.artery_masks = artery_masks
+        self.vein_masks = vein_masks
+        self.spacings = spacings
         if pulmonary_masks is None:
-            self.np_pulmonary_masks = self.make_pulmonary_masks()
+            self.pulmonary_masks = self.make_pulmonary_masks()
         else:
-            self.np_pulmonary_masks  = pulmonary_masks
+            self.pulmonary_masks = pulmonary_masks
 
-        # Initializing dependent attributes
+        # DEPENDENT ATTRIBUTES
+
+        # bbox init - same for both type of masks
         self.bboxs = self.get_bboxs()
-        self.skeletons = self.get_skeletons()
-        self.intersections = self.get_intersections()
+
+        # skeleton init
+        self.artery_skeletons = self.get_skeletons(self.artery_masks)
+        self.vein_skeletons = self.get_skeletons(self.vein_masks)
+
+        # intersection init
+        self.artery_intersections = self.get_intersections(self.artery_masks, self.artery_skeletons, self.bboxs)
+        self.vein_intersections = self.get_intersections(self.vein_masks, self.vein_skeletons, self.bboxs)
 
     def make_pulmonary_masks(self):
         """
@@ -75,25 +82,25 @@ class DataHandler:
 
         return np.array(bboxs)
 
-    def get_skeletons(self):
+    def get_skeletons(self, masks):
         """
-        Creates the skeletons for each input mask.
+        Creates the skeletons for each input mask in masks.
         Uses skimage.morpoholy.skeletonize(...).
         """
         skeletons = []
-        for mask in self.np_masks:
+        for mask in masks:
             skeleton = skeletonize(mask).astype(np.uint16)
             skeletons.append(skeleton)
 
         return np.array(skeletons)
     
-    def get_intersections(self):
+    def get_intersections(self, masks, skeletons, bboxs):
         """
         Calculates the intersections for each skeleton and bounding box pair..
         """
         intersections = []
 
-        for mask, skeleton, mask_bbox in zip(self.np_masks, self.skeletons, self.bboxs):
+        for mask, skeleton, mask_bbox in zip(masks, skeletons, bboxs):
             curr_intersections = np.zeros_like(mask)
 
             for index, bbox in enumerate(mask_bbox):
