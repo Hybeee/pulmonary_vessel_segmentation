@@ -34,7 +34,7 @@ class DataHandler:
     pulmonary_masks = None:
         Pulmonary vein binary masks for the ct scans - if provided by caller, will probably be an ndarray
     """
-    def __init__(self, cts, masks, spacings, pulmonary_masks = None):
+    def __init__(self, cts: np.ndarray, masks: np.ndarray, spacings: np.ndarray, pulmonary_masks: np.ndarray = None):
         # Initializing attributes
         self.cts = cts
         self.masks = masks
