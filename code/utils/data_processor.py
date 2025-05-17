@@ -21,14 +21,16 @@ class DataHandler:
 
     PARAMETERS
     ----------
-    cts:
-        input ct images - will probably be a tensor
-    masks:
-        input masks - will probably be a tensor
-    spacing:
-        spacing of the ct images - will probably be an ndarray
-    pulmonary_masks = None:
-        Pulmonary vein binary masks for the ct scans - if provided by caller, will probably be an ndarray
+    cts: np.ndarray
+        input ct images
+    artery_masks: np.ndarray
+        input artery masks
+    vein_masks: np.ndarray
+        input vein masks
+    spacing: np.ndarray
+        spacing of the ct images
+    pulmonary_masks: np.ndarray = None:
+        Pulmonary vein binary masks for the ct scans
     """
     def __init__(self, cts: np.ndarray, artery_masks: np.ndarray, vein_masks: np.ndarray, spacings: np.ndarray, pulmonary_masks: np.ndarray = None):
         # NORMAL ATTRIBUTES
@@ -37,14 +39,14 @@ class DataHandler:
         self.vein_masks = vein_masks
         self.spacings = spacings
         if pulmonary_masks is None:
-            self.pulmonary_masks = self.make_pulmonary_masks()
+            self.pulmonary_masks = self.make_pulmonary_masks(self.cts)
         else:
             self.pulmonary_masks = pulmonary_masks
 
         # DEPENDENT ATTRIBUTES
 
         # bbox init - same for both type of masks
-        self.bboxs = self.get_bboxs()
+        self.bboxs = self.get_bboxs(self.pulmonary_masks, self.spacings)
 
         # skeleton init
         self.artery_skeletons = self.get_skeletons(self.artery_masks)
@@ -54,25 +56,25 @@ class DataHandler:
         self.artery_intersections = self.get_intersections(self.artery_masks, self.artery_skeletons, self.bboxs)
         self.vein_intersections = self.get_intersections(self.vein_masks, self.vein_skeletons, self.bboxs)
 
-    def make_pulmonary_masks(self):
+    def make_pulmonary_masks(self, cts):
         """
-        Retrieves the pulmonary masks for the ct images in cts attribute
+        Retrieves the pulmonary masks for the ct images in cts parameter
         """
         pulmonary_masks = []
 
-        for ct in self.np_cts:
+        for ct in cts:
             pulmonary_mask = get_pulmonary_mask(ct)
             pulmonary_masks.append(pulmonary_mask)
         
         return np.array(pulmonary_masks)
 
-    def get_bboxs(self):
+    def get_bboxs(self, pulmonary_masks, spacings):
         """
         Retrieves the bounding boxes of the ct images.\n
         Needed later to determine intersection points.
         """
         bboxs = []
-        for mask, spacing in zip(self.np_pulmonary_masks, self.np_spacings):
+        for mask, spacing in zip(pulmonary_masks, spacings):
             bbox = get_bbox(mask, spacing)
             bboxs.append(bbox)
 
