@@ -277,7 +277,6 @@ def traverse_graph(graph, intersection_obj_list, bboxs):
     traversed_paths = []
 
     for intersection in intersection_obj_list:
-        print(f"Traversing from intersection: {intersection.intersection}")
         traversed_nodes_curr, traversed_paths_curr = traverse_component(intersection, graph, visited_nodes, bboxs, step_size=3)
         traversed_nodes.extend(traversed_nodes_curr)
         traversed_paths.append(traversed_paths_curr)

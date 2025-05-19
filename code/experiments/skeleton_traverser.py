@@ -286,9 +286,9 @@ def traverse_graph(graph, intersection_obj_list, bboxs):
         print(f"Traversing from intersection: {intersection.intersection}")
         traversed_nodes_curr, traversed_paths_curr = traverse_component(intersection, graph, visited_nodes, bboxs, step_size=3)
         traversed_nodes.extend(traversed_nodes_curr)
-        traversed_paths.extend(traversed_paths_curr)
+        traversed_paths.append(traversed_paths_curr)
     
-    return np.array(traversed_nodes), np.array(traversed_paths)
+    return np.array(traversed_nodes), traversed_paths
 
 def traverse_graph_from_point(graph, intersection_obj_list, bboxs):
     """
@@ -396,6 +396,13 @@ def main():
 
     # # traversed_nodes = traverse_graph_from_point(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
     traversed_nodes, traversed_paths = traverse_graph(graph=graph, intersection_obj_list=intersection_obj_list, bboxs=bboxs)
+
+    new_traversed_paths = []
+
+    for path in traversed_paths:
+        new_traversed_paths.extend(path)
+
+    traversed_paths = np.array(new_traversed_paths)
 
     u, c = np.unique(traversed_nodes, return_counts=True)
     dup = u[c > 1]
