@@ -80,7 +80,7 @@ class DataHandler:
                                                         self.vein_intersections,
                                                         self.bboxs)
 
-    def make_pulmonary_masks(self, cts):
+    def make_pulmonary_masks(self, cts: np.ndarray) -> np.ndarray:
         """
         Retrieves the pulmonary masks for the ct images in cts parameter
         """
@@ -92,7 +92,7 @@ class DataHandler:
         
         return np.array(pulmonary_masks)
 
-    def get_bboxs(self, pulmonary_masks, spacings):
+    def get_bboxs(self, pulmonary_masks: np.ndarray, spacings: np.ndarray) -> np.ndarray:
         """
         Retrieves the bounding boxes of the ct images.\n
         Needed later to determine intersection points.
@@ -104,7 +104,7 @@ class DataHandler:
 
         return np.array(bboxs)
 
-    def get_skeletons(self, masks):
+    def get_skeletons(self, masks: np.ndarray) -> np.ndarray:
         """
         Creates the skeletons for each input mask in masks.
         Uses skimage.morpoholy.skeletonize(...).
@@ -116,7 +116,7 @@ class DataHandler:
 
         return np.array(skeletons)
     
-    def get_intersections(self, masks, skeletons, bboxs):
+    def get_intersections(self, masks: np.ndarray, skeletons: np.ndarray, bboxs: np.ndarray) -> np.ndarray:
         """
         Calculates the intersections for each skeleton and bounding box pair..
         """
@@ -170,7 +170,7 @@ class DataHandler:
 
         return np.array(intersections)
     
-    def traverse_graph(self, skeletons, intersections, bboxs):
+    def traverse_graph(self, skeletons: np.ndarray, intersections: np.ndarray, bboxs: np.ndarray) -> np.ndarray:
         traversed_paths = []
         for skeleton, curr_intersections in zip(skeletons, intersections):
             graph = traverser.get_graph(skeleton=skeleton)
