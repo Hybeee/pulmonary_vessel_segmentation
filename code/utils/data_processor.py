@@ -9,16 +9,19 @@ import utils.skeleton_traverser as traverser
 
 class DataHandler:
     """
-    DataHandler class that continuously creates the labels during the iterative training.
-    Expects ct scan tensors with a batch dimensions - input should have the shape of [batch, z, y, x], where z, y and x are the shape of the ct scans/images.
-    Input arrays will be tensors on GPU hence .cpu().numpy() is called at several points of the class. NOTE: needed?? will see
-    Initialized by the following steps:\n
-        - Creates the skeleton to the original mask of the CT image (meaning vein and artery masks)
-        - For each ct scan determines the intersection points of a given bounding box and the skeleton
-
-    TODO: The class will probably need to be rewritten into a Dataset class (torch.utils.data.Dataset). This is because this class will have
-          features that will be used during training. Thus it makes more sense to integrate Dataset related features here rather than splitting it
-          accross multiple classes.
+    DataHandler class that prepares data for training a model to iteratively predict pulmonary arteries and veins. The inputs are the parameters described below.\n
+    The preparation consists of the following stages - for each input CT scan and their respective artery/vein mask, spacing values and optionally provided pulmonary mask:
+        1. If no pulmonary masks were provided the class creates them for each input CT scan by utilizing a TS (TotalSegmentator) model
+        2. Based on the provided/generated pulmonary mask, bounding boxes are generated that contain the exit points of pulmonary veins and arteries from the heart.
+        3. Based on the input artery and vein masks, their skeletons are generated
+        4. The intersection points of the skeletons and the bounding boxes are generated
+        5. Both skeletons are traversed from each intersection point - thus each traversal consists of at most n amount of graph component traversals
+           where each component equals to the subcomponent of the entire skeleton's graph's that contains the intersection point. The traversal consists of multiple step and
+           the skeleton bit that was traversed during a given step will be used as ground truth value during training - the original mask will be reconstructed from the skeleton
+           using Fast Marching Method (FMM).
+    
+    NOTE: As mentioned above this process is done for each input CT scan, artery/vein mask, spacing value and optionally provided pulmonary mask tuple. Thus the class expects
+    inputs in the form of np.ndarray where the ith element in each input array (CT scan, artery mask, vein mask, spacing, etc.) belongs to the same data point.
 
     PARAMETERS
     ----------
@@ -31,7 +34,9 @@ class DataHandler:
     spacing: np.ndarray
         spacing of the ct images
     pulmonary_masks: np.ndarray = None:
-        Pulmonary vein binary masks for the ct scans
+        Pulmonary vein binary masks for the ct scans. If not given the class creates it by utilizing TotalSegmentator
+    verbose: bool = False:
+        If set to True, print statements inform the caller about the process'/pipeline's state
     """
     def __init__(self, cts: np.ndarray,
                  artery_masks: np.ndarray,
