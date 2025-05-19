@@ -33,13 +33,20 @@ class DataHandler:
     pulmonary_masks: np.ndarray = None:
         Pulmonary vein binary masks for the ct scans
     """
-    def __init__(self, cts: np.ndarray, artery_masks: np.ndarray, vein_masks: np.ndarray, spacings: np.ndarray, pulmonary_masks: np.ndarray = None):
+    def __init__(self, cts: np.ndarray,
+                 artery_masks: np.ndarray,
+                 vein_masks: np.ndarray,
+                 spacings: np.ndarray,
+                 pulmonary_masks: np.ndarray = None,
+                 verbose: bool =False):
         # NORMAL ATTRIBUTES
         self.cts = cts
         self.artery_masks = artery_masks
         self.vein_masks = vein_masks
         self.spacings = spacings
         if pulmonary_masks is None:
+            if verbose:
+                print("No pulmonary masks were given. Utilizing TotalSegmentator to create them.")
             self.pulmonary_masks = self.make_pulmonary_masks(self.cts)
         else:
             self.pulmonary_masks = pulmonary_masks
@@ -47,17 +54,25 @@ class DataHandler:
         # DEPENDENT ATTRIBUTES
 
         # bbox init - same for both type of masks
+        if verbose:
+            print("Creating bounding boxes.")
         self.bboxs = self.get_bboxs(self.pulmonary_masks, self.spacings)
 
         # skeleton init
+        if verbose:
+            print("Creating skeletons.")
         self.artery_skeletons = self.get_skeletons(self.artery_masks)
         self.vein_skeletons = self.get_skeletons(self.vein_masks)
 
         # intersection init
+        if verbose:
+            print("Creating intersections")
         self.artery_intersections = self.get_intersections(self.artery_masks, self.artery_skeletons, self.bboxs)
         self.vein_intersections = self.get_intersections(self.vein_masks, self.vein_skeletons, self.bboxs)
 
         # creating interseciton objects for graph traversal
+        if verbose:
+            print("Traversing graphs and creating traversed paths.")
         self.traversed_artery_paths = self.traverse_graph(self.artery_skeletons,
                                                              self.artery_intersections,
                                                              self.bboxs)
