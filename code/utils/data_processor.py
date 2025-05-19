@@ -176,6 +176,9 @@ class DataHandler:
         return np.array(intersections)
     
     def traverse_graph(self, skeletons: np.ndarray, intersections: np.ndarray, bboxs: np.ndarray) -> np.ndarray:
+        """
+        Utilizes code/utils/skeleton_traverser.py to traverse the skeletons and generate the traversed paths which will later be used to create labels for training.
+        """
         traversed_paths = []
         for skeleton, curr_intersections in zip(skeletons, intersections):
             graph = traverser.get_graph(skeleton=skeleton)
