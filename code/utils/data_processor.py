@@ -1,10 +1,11 @@
-from skimage.morphology import skeletonize
-import sknw
-from utils.bbox_code import get_bbox
 import numpy as np
 import os
 import SimpleITK as sitk
+from skimage.morphology import skeletonize
+from utils.bbox_code import get_bbox
 from utils.ts_util import get_pulmonary_mask
+import utils.skeleton_traverser as traverser
+
 
 class DataHandler:
     """
@@ -55,6 +56,14 @@ class DataHandler:
         # intersection init
         self.artery_intersections = self.get_intersections(self.artery_masks, self.artery_skeletons, self.bboxs)
         self.vein_intersections = self.get_intersections(self.vein_masks, self.vein_skeletons, self.bboxs)
+
+        # creating interseciton objects for graph traversal
+        self.traversed_artery_paths = self.traverse_graph(self.artery_skeletons,
+                                                             self.artery_intersections,
+                                                             self.bboxs)
+        self.traversed_vein_paths = self.traverse_graph(self.vein_skeletons,
+                                                        self.vein_intersections,
+                                                        self.bboxs)
 
     def make_pulmonary_masks(self, cts):
         """
@@ -145,6 +154,20 @@ class DataHandler:
         intersections.append(curr_intersections)
 
         return np.array(intersections)
+    
+    def traverse_graph(self, skeletons, intersections, bboxs):
+        traversed_paths = []
+        for skeleton, curr_intersections in zip(skeletons, intersections):
+            graph = traverser.get_graph(skeleton=skeleton)
+            intersection_obj_list = traverser.create_intersection_objects(intersections=curr_intersections, graph=graph, bboxs=bboxs)
+            _, curr_traversed_paths = traverser.traverse_graph(graph=graph,
+                                                           intersection_obj_list=intersection_obj_list, 
+                                                           bboxs=bboxs) 
+            # returns traversed nodes too, currently not needed, but won't remove that functionality yet
+
+            traversed_paths.append(curr_traversed_paths)
+        
+        return traversed_paths
 
 def resample_image(image, original_spacing, target_shape):
     """
