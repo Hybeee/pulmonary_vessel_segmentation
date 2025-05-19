@@ -198,7 +198,7 @@ def traverse_component(intersection_obj, graph, visited_nodes, bboxs, step_size=
 
         if not np.array_equal(current_edge[0], graph.nodes[prev_node]['o']):
             current_edge = current_edge[::-1] # if previous node is not the first element in the array - in this case it's the last - then the array needs to be reversed
-            if not initialized: # this is only needed when component traversal starts - otherwise edges would be skipped if the condition above is true
+            if not initialized and intersection_obj.segment_index != 0: # this is only needed when component traversal starts - otherwise edges would be skipped if the condition above is true
                 current_segment_index = len(current_edge) - current_segment_index
 
         while current_segment_index < len(current_edge) - 1:
@@ -234,8 +234,6 @@ def traverse_component(intersection_obj, graph, visited_nodes, bboxs, step_size=
                         accumulated = True
             
             if accumulated:
-                if np.array_equal(intersection_obj.intersection, [103, 257, 213]):
-                    print(accumulator)
                 traversed_paths.extend(accumulator)
                 accumulated = False
                 accumulator = []

@@ -207,13 +207,16 @@ def traverse_component(intersection_obj, graph, visited_nodes, bboxs, step_size=
     accumulator = []
     accumulated = False
     
+    if np.array_equal(intersection_obj.intersection, [125, 266, 369]):
+        print(f"Prev node and next node: {graph.nodes[prev_node]['o']} and {graph.nodes[next_node]['o']}")
+
     while next_node is not None:
         traversed_nodes.append(next_node)
         current_edge = graph[prev_node][next_node]['pts']
 
         if not np.array_equal(current_edge[0], graph.nodes[prev_node]['o']):
             current_edge = current_edge[::-1] # if previous node is not the first element in the array - in this case it's the last - then the array needs to be reversed
-            if not initialized: # this is only needed when component traversal starts - otherwise edges would be skipped if the condition above is true
+            if not initialized and intersection_obj.segment_index != 0: # this is only needed when component traversal starts - otherwise edges would be skipped if the condition above is true
                 current_segment_index = len(current_edge) - current_segment_index
 
         while current_segment_index < len(current_edge) - 1:
@@ -248,9 +251,8 @@ def traverse_component(intersection_obj, graph, visited_nodes, bboxs, step_size=
                         accumulator.append(current_segment_end)
                         accumulated = True
             
-            if accumulated:
-                if np.array_equal(intersection_obj.intersection, [103, 257, 213]):
-                    print(accumulator)
+            if accumulated: # and np.array_equal(intersection_obj.intersection, [125, 266, 369]):
+                # print(accumulator)
                 traversed_paths.extend(accumulator)
                 accumulated = False
                 accumulator = []
@@ -371,10 +373,10 @@ def show_viewer(graph, intersections, intersection_obj_list, traversed_nodes, tr
     plotter.add_points(traversed_paths, color='purple', point_size=10, render_points_as_spheres=True)
     # plotter.add_points(np.array([218, 255, 96]), color='black', point_size=10, render_points_as_spheres=True)
     # plotter.add_points(np.array([217, 255, 97]), color='green', point_size=10, render_points_as_spheres=True)
-    # plotter.add_points(np.array([129, 279, 332][::-1]), color='green', point_size=15, render_points_as_spheres=True)
+    plotter.add_points(np.array([ 99 ,261 ,387][::-1]), color='green', point_size=15, render_points_as_spheres=True)
 
-    # labels = [str(tuple(intersection)) for intersection in traversed_nodes]
-    # plotter.add_point_labels(traversed_nodes, labels, font_size=12, point_size=10)
+    # labels = [str(tuple(intersection)) for intersection in fixed_intersections]
+    # plotter.add_point_labels(fixed_intersections, labels, font_size=12, point_size=10)
     plotter.show_axes()
     plotter.show()
 
