@@ -2,6 +2,20 @@ from torch.utils.data import Dataset
 from data_preparer import DataPreparer
 
 
+class DataPoint:
+    def __init__(self, ct,
+                 artery_mask, artery_skeleton, artery_paths,
+                 vein_mask, vein_skeleton, vein_paths,
+                 spacing):
+        self.ct = ct
+        self.artery_mask = artery_mask
+        self.artery_skeleton = artery_skeleton
+        self.artery_paths = artery_paths
+        self.vein_mask = vein_mask
+        self.vein_skeleton = vein_skeleton
+        self.vein_paths = vein_paths
+        self.spacing = spacing
+
 class IterativeSegmentationDataset(Dataset):
     def __init__(self, dataPreparer: DataPreparer, transform):
         super(IterativeSegmentationDataset, self).__init__()
@@ -28,12 +42,15 @@ class IterativeSegmentationDataset(Dataset):
         
         artery_mask = self.artery_masks[index]
         artery_skeleton = self.artery_skeletons[index]
-        traversed_artery_paths = self.traversed_arteries[index]
+        artery_paths = self.traversed_arteries[index]
 
         vein_mask  =self.vein_masks[index]
         vein_skeleton = self.vein_skeletons[index]
-        traversed_vein_paths = self.traversed_veins[index]
+        vein_paths = self.traversed_veins[index]
 
         spacing = self.spacings[index]
 
-        return self.transform(ct), artery_mask, artery_skeleton, traversed_artery_paths, vein_mask, vein_skeleton, traversed_vein_paths, spacing
+        return DataPoint(ct=ct,
+                         artery_mask=artery_mask, artery_skeleton=artery_skeleton, artery_paths=artery_paths,
+                         vein_mask=vein_mask, vein_skeleton=vein_skeleton, vein_paths=vein_paths,
+                         spacing=spacing)
