@@ -78,10 +78,10 @@ class DataPreparer:
         # creating interseciton objects for graph traversal
         if verbose:
             print("Traversing graphs and creating traversed paths.")
-        self.traversed_artery_paths = self.traverse_graph(self.artery_skeletons,
+        self.traversed_arteries = self.traverse_graph(self.artery_skeletons,
                                                              self.artery_intersections,
                                                              self.bboxs)
-        self.traversed_vein_paths = self.traverse_graph(self.vein_skeletons,
+        self.traversed_veins = self.traverse_graph(self.vein_skeletons,
                                                         self.vein_intersections,
                                                         self.bboxs)
 
