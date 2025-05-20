@@ -1,8 +1,8 @@
 import SimpleITK as sitk
 import numpy as np
 from scipy.ndimage import find_objects
-from utils.scan_plotter import scan_to_np_array_with_slice
-from utils.scan_plotter import view_scan
+from code.utils.scan_plotter import scan_to_np_array_with_slice
+from code.utils.scan_plotter import view_scan
 import matplotlib.pyplot as plt
 
 # image shape is slice x height x width <=> (z, y, x)!

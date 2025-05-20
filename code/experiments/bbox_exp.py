@@ -1,8 +1,8 @@
 import SimpleITK as sitk
 import numpy as np
 from scipy.ndimage import find_objects
-from utils.scan_plotter import scan_to_np_array_with_slice
-from utils.scan_plotter import view_scan
+from code.utils.scan_plotter import scan_to_np_array_with_slice
+from code.utils.scan_plotter import view_scan
 import matplotlib.pyplot as plt
 
 # image shape is slice x height x width <=> (z, y, x)!
@@ -101,8 +101,8 @@ def main():
     # view_scan(skeleton)
 
     (ct, ct_image_spacing) = scan_to_np_array_with_slice('dataset/HiPaS/ct_scan_nii/005.nii')
-    (vein_mask, _) = scan_to_np_array_with_slice('code/result_masks/005_pulmonary_result_masked.nii')
-    (vein_and_heart_mask, spacing) = scan_to_np_array_with_slice('code/result_masks/005_heart_and_pulmonary_result_masked.nii')
+    (vein_mask, _) = scan_to_np_array_with_slice('code/resources/result_masks/005_pulmonary_result_masked.nii')
+    (vein_and_heart_mask, spacing) = scan_to_np_array_with_slice('code/resources/result_masks/005_heart_and_pulmonary_result_masked.nii')
 
     print(ct.shape)
     print(vein_mask.shape)
@@ -118,7 +118,7 @@ def main():
 
     for side_i in crop_bboxes:
         print(f"bbox: {side_i}")
-        mask_copy[tuple(side_i)] = ct[tuple(side_i)]
+        mask_copy[tuple(side_i)] = vein_mask[tuple(side_i)]
 
     print(mask_copy.shape)
 
