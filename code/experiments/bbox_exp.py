@@ -89,3 +89,44 @@ def get_bbox(vein_mask, spacing):
     _, bboxes_padded = create_bboxes(ts_vein_entry_mask_side_labeled, spacing)
 
     return bboxes_padded
+
+def main():
+    # skeleton = sitk.ReadImage("dataset/skeleton/005_vein_mask_skeleton.nii.gz")
+    # skeleton = sitk.GetArrayFromImage(skeleton)
+
+    # skeleton_slice = np.argwhere(skeleton[103, :, :])
+
+    # print(skeleton_slice)
+
+    # view_scan(skeleton)
+
+    (ct, ct_image_spacing) = scan_to_np_array_with_slice('dataset/HiPaS/ct_scan_nii/005.nii')
+    (vein_mask, _) = scan_to_np_array_with_slice('code/result_masks/005_pulmonary_result_masked.nii')
+    (vein_and_heart_mask, spacing) = scan_to_np_array_with_slice('code/result_masks/005_heart_and_pulmonary_result_masked.nii')
+
+    print(ct.shape)
+    print(vein_mask.shape)
+
+    ct_image_spacing =  [0.7109375, 0.7109375, 1.0] # from metadata.xlsx -> sitk's builtin method didnt work :(
+
+    ct_image_spacing = ct_image_spacing[::-1]
+
+    ts_vein_entry_mask_side_labeled = separate_entry_mask(vein_mask)
+    crop_bboxes_padded, crop_bboxes  = create_bboxes(ts_vein_entry_mask_side_labeled, ct_image_spacing)
+
+    mask_copy = np.zeros_like(ct, np.uint32)
+
+    for side_i in crop_bboxes:
+        print(f"bbox: {side_i}")
+        mask_copy[tuple(side_i)] = ct[tuple(side_i)]
+
+    print(mask_copy.shape)
+
+    view_scan([mask_copy])
+
+    # # mask_copy = sitk.GetImageFromArray(mask_copy)
+
+    # # sitk.WriteImage(mask_copy, "code/result_masks/vessel_entry.nii.gz")
+
+if __name__ == "__main__":
+    main()
