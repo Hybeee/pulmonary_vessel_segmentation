@@ -2,14 +2,14 @@ import numpy as np
 import os
 import SimpleITK as sitk
 from skimage.morphology import skeletonize
-from utils.bbox_code import get_bbox
+from utils.bbox import get_bbox
 from utils.ts_util import get_pulmonary_mask
 import utils.skeleton_traverser as traverser
 
 
 class DataPreparer:
     """
-    DataHandler class that prepares data for training a model to iteratively predict pulmonary arteries and veins. The inputs are the parameters described below.\n
+    DataPreparer class that prepares data for training a model to iteratively predict pulmonary arteries and veins. The inputs are the parameters described below.\n
     The preparation consists of the following stages - for each input CT scan and their respective artery/vein mask, spacing values and optionally provided pulmonary mask:
         1. If no pulmonary masks were provided the class creates them for each input CT scan by utilizing a TS (TotalSegmentator) model
         2. Based on the provided/generated pulmonary mask, bounding boxes are generated that contain the exit points of pulmonary veins and arteries from the heart.

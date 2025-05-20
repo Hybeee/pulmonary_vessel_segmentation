@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 from utils.scan_plotter import view_scan
 from scipy.ndimage import sobel
-from utils.bbox_code import get_bbox
+from utils.bbox import get_bbox
 from utils.scan_plotter import scan_to_np_array
 
 

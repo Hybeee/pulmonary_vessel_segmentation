@@ -1,4 +1,4 @@
-from utils.data_processor import read_images_from_files, resample_image
+from utils.data_preparer import read_images_from_files, resample_image
 from utils.scan_plotter import view_scan
 from utils.ts_util import get_pulmonary_mask
 import pandas as pd
