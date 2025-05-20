@@ -7,7 +7,7 @@ from utils.ts_util import get_pulmonary_mask
 import utils.skeleton_traverser as traverser
 
 
-class DataHandler:
+class DataPreparer:
     """
     DataHandler class that prepares data for training a model to iteratively predict pulmonary arteries and veins. The inputs are the parameters described below.\n
     The preparation consists of the following stages - for each input CT scan and their respective artery/vein mask, spacing values and optionally provided pulmonary mask:
@@ -21,7 +21,7 @@ class DataHandler:
            using Fast Marching Method (FMM).
     
     NOTE: As mentioned above this process is done for each input CT scan, artery/vein mask, spacing value and optionally provided pulmonary mask tuple. Thus the class expects
-    inputs in the form of np.ndarray where the ith element in each input array (CT scan, artery mask, vein mask, spacing, etc.) belongs to the same data point.
+    inputs in the form of np.ndarray where the ith element in each input array (CT scan, artery mask, vein mask, spacing, etc.) belongs to the same data point. 
 
     PARAMETERS
     ----------
