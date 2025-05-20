@@ -132,7 +132,7 @@ def deskeletonize_helper(skeleton, mask_orig, deskeleton_map, nbs):
 
     return deskeletonized.reshape(shape_orig)
 
-def segment_to_volume(coords, volume_shape):
+def segment_to_volume(coords: np.ndarray, volume_shape):
     """
     Convert a list of coordinates to a binary volume.
     
