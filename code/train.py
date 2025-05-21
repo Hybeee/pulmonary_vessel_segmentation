@@ -3,11 +3,17 @@ import code.utils.fast_marching as fm
 
 import numpy as np
 
-def init_label(artery_mask, vein_mask, bboxs) -> tuple[np.ndarray, np.ndarray]:
+def init_label(artery_mask, vein_mask, bboxs) -> np.ndarray:
     """
     Initializes the labels for the iterative segmentation.
     The 0th label is the intersection of the bounding boxes (inclusive) and the original masks.
+    Class index/pixel value of:
+        - background: 0
+        - artery: 1
+        - vein: 2
     """
+
+    assert artery_mask.shape == vein_mask.shape, "Mask shapes must be the same"
 
     artery_mask_copy = np.zeros_like(artery_mask, np.uint32)
     vein_mask_copy = np.zeros_like(vein_mask, np.uint32)
@@ -16,7 +22,11 @@ def init_label(artery_mask, vein_mask, bboxs) -> tuple[np.ndarray, np.ndarray]:
         artery_mask_copy[tuple(bbox)] = artery_mask[tuple(bbox)]
         vein_mask_copy[tuple(bbox)] = vein_mask[tuple(bbox)]
 
-    return artery_mask_copy, vein_mask_copy
+    label = np.zeros_like(artery_mask_copy)
+    label[artery_mask_copy > 0] = 1 # class of artery: 1
+    label[vein_mask_copy > 0] = 2 # class of vein: 2
+
+    return label
 
 def generate_next_label(index, previous_label,
                          artery_mask, artery_skeleton, artery_paths,
