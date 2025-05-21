@@ -38,10 +38,31 @@ def generate_next_label(index, previous_label,
     and the reconstructed mask from the ith traversed path.
 
     NOTE: Indexing should be handled <=> len(artery_paths) <? >? =? len(vein_paths)
+    NOTE: Should it be previous_label or previous_prediction?
+    
+    None is returned if no more labels can be generated <=> traversal has been completed
     """
 
-    artery_skeleton_segment = fm.segment_to_volume(np.array(artery_paths[index]), artery_skeleton.shape)
-    vein_skeleton_segment = fm.segment_to_volume(np.array(vein_paths[index]), vein_skeleton.shape)
+    next_label = np.copy(previous_label)
+    artery_paths_exhausted = False
+    vein_paths_exhausted = False
 
-    artery_deskeletonized = fm.deskeletonize(artery_skeleton_segment, artery_mask, artery_deskeleton_map)
-    vein_deskeletonized = fm.deskeletonize(vein_skeleton_segment, vein_mask, vein_deskeleton_map)
+    if index > len(artery_paths) - 1:
+        artery_paths_exhausted = True
+    if index > len(vein_paths) - 1:
+        vein_paths_exhausted = True
+
+    if artery_paths_exhausted and vein_paths_exhausted:
+        return None
+
+    if not artery_paths_exhausted:
+        artery_skeleton_segment = fm.segment_to_volume(np.array(artery_paths[index]), artery_skeleton.shape)
+        artery_deskeletonized = fm.deskeletonize(artery_skeleton_segment, artery_mask, artery_deskeleton_map)
+        next_label[artery_deskeletonized > 0] = 1
+
+    if not vein_paths_exhausted:
+        vein_skeleton_segment = fm.segment_to_volume(np.array(vein_paths[index]), vein_skeleton.shape)
+        vein_deskeletonized = fm.deskeletonize(vein_skeleton_segment, vein_mask, vein_deskeleton_map)
+        next_label[vein_deskeletonized > 0] = 2
+    
+    return next_label
