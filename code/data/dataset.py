@@ -6,7 +6,7 @@ class DataPoint:
     def __init__(self, ct,
                  artery_mask, artery_skeleton, artery_paths,
                  vein_mask, vein_skeleton, vein_paths,
-                 spacing):
+                 bbox_pair, spacing):
         self.ct = ct
         self.artery_mask = artery_mask
         self.artery_skeleton = artery_skeleton
@@ -14,6 +14,7 @@ class DataPoint:
         self.vein_mask = vein_mask
         self.vein_skeleton = vein_skeleton
         self.vein_paths = vein_paths
+        self.bbox_pair = bbox_pair
         self.spacing = spacing
 
 class IterativeSegmentationDataset(Dataset):
@@ -29,6 +30,7 @@ class IterativeSegmentationDataset(Dataset):
         self.vein_skeletons = dataPreparer.vein_skeletons
         self.traversed_veins = dataPreparer.traversed_veins
 
+        self.bboxs = dataPreparer.bboxs
         self.spacings = dataPreparer.spacings
 
         self.transform = transform
@@ -36,7 +38,7 @@ class IterativeSegmentationDataset(Dataset):
     def __len__(self):
         return len(self.cts)
     
-    def __geitem__(self, index):
+    def __getitem__(self, index) -> DataPoint:
         # Is transform even needed? only for cts?
         ct = self.cts[index]
         
@@ -48,9 +50,10 @@ class IterativeSegmentationDataset(Dataset):
         vein_skeleton = self.vein_skeletons[index]
         vein_paths = self.traversed_veins[index]
 
+        bbox_pair = self.bboxs[index]
         spacing = self.spacings[index]
 
         return DataPoint(ct=ct,
                          artery_mask=artery_mask, artery_skeleton=artery_skeleton, artery_paths=artery_paths,
                          vein_mask=vein_mask, vein_skeleton=vein_skeleton, vein_paths=vein_paths,
-                         spacing=spacing)
+                         bbox_pair=bbox_pair, spacing=spacing)
