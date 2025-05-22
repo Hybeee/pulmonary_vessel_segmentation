@@ -107,8 +107,9 @@ def main():
     # ct = ct.transpose(2, 0, 1)
     # # vein = vein.transpose(2, 0, 1)
 
-    vessel_mask = scan_to_np_array('dataset/HiPaS/annotation/vein_nii/005.nii')
-    vein_skeleton = scan_to_np_array('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
+    vessel_mask = scan_to_np_array('dataset/HiPaS/annotation/vein_nii/199.nii.gz')
+    ct = scan_to_np_array('dataset/HiPaS/ct_scan_nii/199.nii.gz')
+    random = scan_to_np_array('code/resources/result_masks/vessel_entry.nii.gz')
 
 
     # slicer like plotting
@@ -118,7 +119,7 @@ def main():
     # print(vessel_mask.shape)
     # vessel_skeleton = scan_to_np_array('dataset/005_vessel_skeleton.nii')
 
-    view_scan([vessel_mask, vein_skeleton])
+    view_scan([ct, random])
 
 
 if __name__ == "__main__":

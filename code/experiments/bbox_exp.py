@@ -118,15 +118,15 @@ def main():
 
     for side_i in crop_bboxes:
         print(f"bbox: {side_i}")
-        mask_copy[tuple(side_i)] = vein_mask[tuple(side_i)]
+        mask_copy[tuple(side_i)] = ct[tuple(side_i)]
 
     print(mask_copy.shape)
 
     view_scan([mask_copy])
 
-    # # mask_copy = sitk.GetImageFromArray(mask_copy)
+    mask_copy = sitk.GetImageFromArray(mask_copy)
 
-    # # sitk.WriteImage(mask_copy, "code/result_masks/vessel_entry.nii.gz")
+    sitk.WriteImage(mask_copy, "code/resources/result_masks/vessel_entry.nii.gz")
 
 if __name__ == "__main__":
     main()

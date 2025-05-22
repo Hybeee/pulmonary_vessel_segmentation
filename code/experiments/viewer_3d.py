@@ -103,9 +103,6 @@ def get_closest_graph_nodes_2(intersections, graph):
             for i in range(len(current_edge) - 1):
                 # if ((np.array_equal(intersection, current_edge[i])) or (np.array_equal(intersection, current_edge[i + 1]))):
                 if point_on_segment(intersection, current_edge[i], current_edge[i+1]):
-                    if (np.array_equal(graph.nodes[u]['o'], np.array([125, 266, 369])) or np.array_equal(graph.nodes[v]['o'], np.array([125, 266, 369]))):
-                        print("LOL")
-                        print(intersection)
                     ret_nodes.append(u)
                     ret_nodes.append(v)
                     found = True
@@ -177,21 +174,21 @@ def main():
     # print(f"Old closest graph nodes shape: {closest_nodes.shape}")
 
     filtered_node_ids = filter_nodes_2(vessel_graph, bbox)
-    print(f"Filtered nodes shape: {filtered_node_ids.shape}")
+    # print(f"Filtered nodes shape: {filtered_node_ids.shape}")
 
     closest_nodes_ids = get_closest_graph_nodes_2(intersections, vessel_graph)
-    print(f"Closest nodes ids: {closest_nodes_ids}")
-    print(f"Intersections shape: {intersections.shape}")
-    print(f"Closest nodes shape: {closest_nodes_ids.shape}")
+    # print(f"Closest nodes ids: {closest_nodes_ids}")
+    # print(f"Intersections shape: {intersections.shape}")
+    # print(f"Closest nodes shape: {closest_nodes_ids.shape}")
 
     closest_nodes_filtered_ids = np.array([node_id for node_id in closest_nodes_ids if node_id in filtered_node_ids])
 
     closest_nodes = np.array([vessel_graph.nodes[node_id]['o'] for node_id in closest_nodes_filtered_ids])
     closest_nodes = closest_nodes[:, [2, 1, 0]] # Transposing for the viewer
-    print(closest_nodes)
-    print(f"Other shape: {closest_nodes.shape}")
+    # print(closest_nodes)
+    # print(f"Other shape: {closest_nodes.shape}")
 
-    plotter.add_points(closest_nodes, color="purple", opacity=0.8, point_size=10, render_points_as_spheres=True)
+    # plotter.add_points(closest_nodes, color="purple", opacity=0.8, point_size=10, render_points_as_spheres=True)
 
     # vessel_mesh = get_mesh('dataset/HiPaS/annotation/vein_nii/005.nii')
     vessel_skeleton_mesh = get_mesh('dataset/skeleton/005_vein_mask_skeleton.nii.gz')
@@ -207,13 +204,9 @@ def main():
 
     # plotter.add_mesh(vessel_mesh, color="orange", opacity=0.6, line_width=5)
     # plotter.add_mesh(vessel_skeleton_mesh, color="purple", opacity=0.6, line_width=5)
-    plotter.add_points(np.array([387, 261,  99]), color="yellow", point_size=15, render_points_as_spheres=True)
     plotter.add_points(i3d_points_bbox, color="black", point_size=10, render_points_as_spheres=True)
-    plotter.add_points(np.array([369, 266, 125]), color="green", point_size=15, render_points_as_spheres=True)
-    plotter.add_points(np.array([369, 265, 125]), color="blue", point_size=15, render_points_as_spheres=True)
-    plotter.add_points(np.array([369, 264, 125]), color="brown", point_size=15, render_points_as_spheres=True)
-    plotter.add_mesh(bounding_box_1, color="green", opacity=0.4, style='wireframe')
-    plotter.add_mesh(bounding_box_2, color="green", opacity=0.4, style='wireframe')
+    # plotter.add_mesh(bounding_box_1, color="green", opacity=0.4, style='wireframe')
+    # plotter.add_mesh(bounding_box_2, color="green", opacity=0.4, style='wireframe')
 
     print("Plotting...")
     plotter.show_axes()
