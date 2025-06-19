@@ -146,7 +146,7 @@ def add_graph_to_plot(plotter: pv.Plotter, vessel_graph):
         edge_points = vessel_graph[start][end]['pts']
         edge_points = edge_points[:, [2, 1, 0]]
         line = pv.lines_from_points(edge_points, close=False)
-        plotter.add_mesh(line, color="green", opacity=0.2)
+        plotter.add_mesh(line, color="blue", opacity=0.2)
 
     node_points = np.array([nodes[node_id]['o'] for node_id in nodes])
     node_points = node_points[:, [2, 1, 0]]
@@ -205,8 +205,8 @@ def main():
     # plotter.add_mesh(vessel_mesh, color="orange", opacity=0.6, line_width=5)
     # plotter.add_mesh(vessel_skeleton_mesh, color="purple", opacity=0.6, line_width=5)
     plotter.add_points(i3d_points_bbox, color="black", point_size=10, render_points_as_spheres=True)
-    # plotter.add_mesh(bounding_box_1, color="green", opacity=0.4, style='wireframe')
-    # plotter.add_mesh(bounding_box_2, color="green", opacity=0.4, style='wireframe')
+    plotter.add_mesh(bounding_box_1, color="green", opacity=0.4, style='wireframe')
+    plotter.add_mesh(bounding_box_2, color="green", opacity=0.4, style='wireframe')
 
     print("Plotting...")
     plotter.show_axes()

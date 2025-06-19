@@ -4,6 +4,8 @@ import code.utils.fast_marching as fm
 import numpy as np
 import torch
 
+# axaxa kivagasa kell a ct-nek tanitas soran -> maskent nem ferne a memoriaba
+
 def generate_initial_label(artery_mask, vein_mask, bboxs) -> np.ndarray:
     """
     Initializes the labels for the iterative segmentation.
