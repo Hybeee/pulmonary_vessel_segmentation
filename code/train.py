@@ -25,9 +25,6 @@ class DataPointLoader:
             return (self.init_vein_label, self.vein_deskeleton_map,
                     self.datapoint.vein_mask, self.datapoint.vein_skeleton,
                     self.datapoint.vein_paths)
-                    
-
-
 
 def generate_initial_label(mask, bboxs) -> np.ndarray:
     """
@@ -79,6 +76,47 @@ def generate_next_label(index, previous_label,
 
     return next_label, paths[index][0]
 
+def pad_image(image, pad_width):
+    """
+    Pads the 3D image with zeros on all sides by pad_width voxels.
+    """
+
+    image_copy = np.copy(image)
+
+    padded_image = np.pad(image_copy,
+                          pad_width=((pad_width, pad_width),
+                                     (pad_width, pad_width),
+                                     (pad_width, pad_width)),
+                                     mode='constant', constant_values=0)
+    
+    return padded_image
+
+
+def get_3d_patch(image, center, a=40):
+    """
+    Extracts a 3D patch from the input image.
+    The extracted patch is a cube with side lengths of a.
+    The parameter center is the center of the extracted cube/patch.
+    center's shape is [z, y, x]
+    """
+
+    half = a // 2 # floor rounding
+
+    padded_image = pad_image(image=image, pad_width=half)
+    adjusted_center = center + half
+
+    x_start = adjusted_center[2] - half
+    x_end = adjusted_center[2] + half + (1 if a % 2 != 0 else 0)
+    y_start = adjusted_center[1] - half
+    y_end = adjusted_center[1] + half + (1 if a % 2 != 0 else 0)
+    z_start = adjusted_center[0] - half
+    z_end = adjusted_center[0] + half + (1 if a % 2 != 0 else 0)
+
+    patch = padded_image[z_start:z_end, y_start:y_end, x_start:x_end]
+
+    return patch
+
+
 def train(device, epochs,
           model, optimizer, loss_fn,
           train_dataset: IterativeSegmentationDataset, val_dataset: IterativeSegmentationDataset,
@@ -95,5 +133,48 @@ def train(device, epochs,
         model.to(device)
         model.train()
 
-        for idx in range(len(train_dataset)):
-            datapoint = train_dataset[idx]
+        for data_idx in range(len(train_dataset)):
+            datapoint = train_dataset[data_idx]
+            datapoint_loader = DataPointLoader(datapoint=datapoint)
+
+            for i in range(2):
+                (init_label, deskeleton_map, mask, skeleton, paths) = datapoint_loader.get_current_data(i)
+
+                input = init_label
+
+                for path_idx in range(len(paths)):
+                    gt_label, curr_path_start = generate_next_label(index=path_idx, previous_label=input,
+                                                   mask=mask, skeleton=skeleton, paths=paths,
+                                                   deskeleton_map=deskeleton_map)
+
+                    if gt_label is None:
+                        break
+
+                    input_patch = get_3d_patch(image=input, center=curr_path_start)
+                    gt_label_patch = get_3d_patch(image=gt_label, center=curr_path_start)
+
+                    input_tensor = torch.from_numpy(input_patch)
+                    gt_label_tensor = torch.from_numpy(gt_label_patch)
+
+                    input_tensor = input_tensor.to(device)
+                    gt_label_tensor = gt_label_tensor.to(device)
+
+                    output = model(input_tensor)
+
+                    loss = loss_fn(output, gt_label_tensor)
+                    running_loss += loss
+
+                    loss.backward()
+                    optimizer.step()
+
+                    input = gt_label
+
+        running_loss /= len(train_dataset)
+
+        if verbose:
+            print(f"Completed epoch: {epoch}")
+            print(f"\tTraining loss: {running_loss}")
+
+        train_loss.append(running_loss)
+        running_loss = 0        
+

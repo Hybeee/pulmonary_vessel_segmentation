@@ -121,7 +121,7 @@ def train(device, epochs,
                 # loss of the entire traversal/processing of the current data point?
                 # For now: opt.step() is called for each prediction during traversal
 
-                output = model(input)
+                output = model(input_tensor)
 
                 loss = loss_fn(output, gt_label_tensor)
                 running_loss += loss
