@@ -1,8 +1,33 @@
-from data.dataset import IterativeSegmentationDataset
+from data.dataset import IterativeSegmentationDataset, DataPoint
 import code.utils.fast_marching as fm
 
 import numpy as np
 import torch
+
+class DataPointLoader:
+    def __init__(self, datapoint: DataPoint):
+        self.datapoint = datapoint
+        self.artery_deskeleton_map = fm.create_deskeleton_map(skeleton=datapoint.artery_skeleton,
+                                                         mask_orig=datapoint.artery_mask,
+                                                         pixel_spacing=datapoint.spacing)
+        self.vein_deskeleton_map = fm.create_deskeleton_map(skeleton=datapoint.vein_skeleton,
+                                                            mask_orig=datapoint.vein_mask,
+                                                            pixel_spacing=datapoint.spacing)
+        self.init_artery_label = generate_initial_label(mask=datapoint.artery_mask, bboxs=datapoint.bbox_pair)
+        self.init_vein_label = generate_initial_label(mask=datapoint.vein_mask, bboxs=datapoint.bbox_pair)
+
+    def get_current_data(self, index):
+        if index == 0:
+            return (self.init_artery_label, self.artery_deskeleton_map,
+                    self.datapoint.artery_mask, self.datapoint.artery_skeleton,
+                    self.datapoint.artery_paths)
+        else:
+            return (self.init_vein_label, self.vein_deskeleton_map,
+                    self.datapoint.vein_mask, self.datapoint.vein_skeleton,
+                    self.datapoint.vein_paths)
+                    
+
+
 
 def generate_initial_label(mask, bboxs) -> np.ndarray:
     """
@@ -53,3 +78,22 @@ def generate_next_label(index, previous_label,
     next_label[deskeletonized > 0] = 1
 
     return next_label, paths[index][0]
+
+def train(device, epochs,
+          model, optimizer, loss_fn,
+          train_dataset: IterativeSegmentationDataset, val_dataset: IterativeSegmentationDataset,
+          verbose=False):
+    """
+    TODO: Validation related code. Until training's logic is not finalized, no need to implement it.
+    """
+    train_loss = list() # will be used for plotting
+    val_loss = list()
+
+    for epoch in range(epochs):
+        running_loss = 0.0
+
+        model.to(device)
+        model.train()
+
+        for idx in range(len(train_dataset)):
+            datapoint = train_dataset[idx]
