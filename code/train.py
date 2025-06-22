@@ -28,12 +28,11 @@ class DataPointLoader:
 
 def generate_initial_label(mask, bboxs) -> np.ndarray:
     """
-    Initializes the labels for the iterative segmentation.
+    Initializes the labels for the iterative (binary) segmentation.
     The 0th label is the intersection of the bounding boxes (inclusive) and the original mask.
     Class index/pixel value of:
         - background: 0
-        - artery: 1
-        - vein: 2
+        - segmentation: 1
     """
 
     mask_copy = np.zeros_like(mask, np.uint32)
@@ -54,7 +53,6 @@ def generate_next_label(index, previous_label,
     Done by taking the intersection of the label in the i-1th step 
     and the reconstructed mask from the ith traversed path.
 
-    NOTE: Indexing should be handled <=> len(artery_paths) <? >? =? len(vein_paths)
     NOTE: Should it be previous_label or previous_prediction? Latter probably.
     
     None is returned if no more labels can be generated <=> traversal has been completed
@@ -127,6 +125,10 @@ def train(device, epochs,
     train_loss = list() # will be used for plotting
     val_loss = list()
 
+    if verbose:
+        print(f"Starting training for {epochs} epoch(s)")
+        print("-----")
+
     for epoch in range(epochs):
         running_loss = 0.0
 
@@ -136,14 +138,19 @@ def train(device, epochs,
         for data_idx in range(len(train_dataset)):
             datapoint = train_dataset[data_idx]
             datapoint_loader = DataPointLoader(datapoint=datapoint)
+            input = datapoint.ct
 
             for i in range(2):
                 (init_label, deskeleton_map, mask, skeleton, paths) = datapoint_loader.get_current_data(i)
 
-                input = init_label
+                # NOTE
+                # Itt kerdeses: Mi legyen a halo alap bemenete? Az elvart kimenete valszeg az amit hozzadok generate_next_label-ben(?)
+                # Lehet majd eszembe jut DE: Hogy birjuk itt ra a halot, hogy jo iranyba induljon el?
+                # init_label = az eredeti teljes maszk azon resze, ami a megadott bounding box-on belul van.
+                current_label = init_label
 
                 for path_idx in range(len(paths)):
-                    gt_label, curr_path_start = generate_next_label(index=path_idx, previous_label=input,
+                    gt_label, curr_path_start = generate_next_label(index=path_idx, previous_label=current_label,
                                                    mask=mask, skeleton=skeleton, paths=paths,
                                                    deskeleton_map=deskeleton_map)
 
@@ -167,7 +174,7 @@ def train(device, epochs,
                     loss.backward()
                     optimizer.step()
 
-                    input = gt_label
+                    current_label = gt_label
 
         running_loss /= len(train_dataset)
 
@@ -176,5 +183,4 @@ def train(device, epochs,
             print(f"\tTraining loss: {running_loss}")
 
         train_loss.append(running_loss)
-        running_loss = 0        
-
+        running_loss = 0
