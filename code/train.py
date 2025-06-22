@@ -3,6 +3,8 @@ import utils.fast_marching as fm
 
 import numpy as np
 import torch
+import SimpleITK as sitk
+from utils.scan_plotter import view_scan
 
 class DataPointLoader:
     def __init__(self, datapoint: DataPoint):
@@ -186,7 +188,22 @@ def train(device, epochs,
         running_loss = 0
 
 def main():
-    print("Hello world!")
+    ct = sitk.ReadImage("dataset/HiPaS/ct_scan_nii/005.nii.gz")
+    ct = sitk.GetArrayFromImage(ct)
+    vein_mask = sitk.ReadImage("dataset/HiPaS/annotation/vein_nii/005.nii.gz")
+    vein_mask = sitk.GetArrayFromImage(vein_mask)
+
+    segment_coords = [np.array([103, 257, 213], dtype=np.int64),
+                  np.array([101, 257, 214], dtype=np.int16),
+                  np.array([100, 256, 214], dtype=np.int16)]
+    
+    print(f"CT shape: {ct.shape}")
+
+    ct_patch = get_3d_patch(image=ct, center=segment_coords[0])
+    vein_mask_patch = get_3d_patch(image=vein_mask, center=segment_coords[0])
+
+    print(f"CT patch shape: {ct_patch.shape}")
+    view_scan([ct_patch, vein_mask_patch])
 
 if __name__ == "__main__":
     main()
