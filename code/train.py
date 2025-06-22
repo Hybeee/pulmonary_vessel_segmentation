@@ -1,5 +1,5 @@
 from data.dataset import IterativeSegmentationDataset, DataPoint
-import code.utils.fast_marching as fm
+import utils.fast_marching as fm
 
 import numpy as np
 import torch
@@ -184,3 +184,9 @@ def train(device, epochs,
 
         train_loss.append(running_loss)
         running_loss = 0
+
+def main():
+    print("Hello world!")
+
+if __name__ == "__main__":
+    main()

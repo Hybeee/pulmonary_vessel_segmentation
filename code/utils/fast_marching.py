@@ -3,7 +3,7 @@ import SimpleITK as sitk
 from numba import jit
 
 # ONLY FOR TESTING
-from scan_plotter import view_scan
+from utils.scan_plotter import view_scan
 
 
 def neighbors(shape):

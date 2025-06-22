@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from data_preparer import DataPreparer
+from data.data_preparer import DataPreparer
 
 
 class DataPoint:
