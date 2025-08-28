@@ -3,6 +3,23 @@ from data.data_preparer import DataPreparer
 
 
 class DataPoint:
+    """
+    Class that represents a single training data sample/point.
+
+    A training sample consists of the following attributes/data structures:
+
+        - The original CT scan
+        - The mask of the artery network
+        - The artery network's skeleton
+        - The path segments of the artery skeleton on which the traversal is done
+        - The mask of the vein network
+        - The vein network's skeleton
+        - The path segments of the vein skeleton on which the traversal is done
+        - A tuple of bounding box pairs
+            - A bounding box that covers the left side of the heart. Used to detect left side exit points of the artery/vein networks
+            - A bounding box that covers the right side of the heart. Used to detect right side exit points of the artery/vein networks
+        - The spacing meta information of the CT scan
+    """
     def __init__(self, ct,
                  artery_mask, artery_skeleton, artery_paths,
                  vein_mask, vein_skeleton, vein_paths,
@@ -18,6 +35,14 @@ class DataPoint:
         self.spacing = spacing
 
 class IterativeSegmentationDataset(Dataset):
+    """
+    Dataset class.
+
+    Handles how training samples are accessed during training.
+
+    When the ith data sample accessed it returns a DataPoint data class instance
+    that contains all the relevant information/data structures to the given sample.
+    """
     def __init__(self, dataPreparer: DataPreparer, transform):
         super(IterativeSegmentationDataset, self).__init__()
         self.cts = dataPreparer.cts

@@ -27,7 +27,7 @@ def get_pulmonary_mask(ct):
     ct_path = "code/resources/temp_images/temp_ct.nii.gz"
     sitk.WriteImage(ct_sitk, ct_path)
 
-    output_mask = totalsegmentator(ct_path, task='total', output="code/resources/temp_images/temp_ts_output")
+    # output_mask = totalsegmentator(ct_path, task='total', output="code/resources/temp_images/temp_ts_output")
     pulmonary_mask = sitk.ReadImage("code/resources/temp_images/temp_ts_output/pulmonary_vein.nii.gz")
     pulmonary_mask = sitk.GetArrayFromImage(pulmonary_mask)
     return pulmonary_mask

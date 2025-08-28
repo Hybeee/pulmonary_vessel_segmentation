@@ -7,6 +7,11 @@ import SimpleITK as sitk
 from utils.scan_plotter import view_scan
 
 class DataPointLoader:
+    """
+    Class used to handle the loading of a data point during training.
+
+    Serves the purpose of initializing auxiliary data structures of the given training sample as well as creating the initial label.
+    """
     def __init__(self, datapoint: DataPoint):
         self.datapoint = datapoint
         self.artery_deskeleton_map = fm.create_deskeleton_map(skeleton=datapoint.artery_skeleton,
@@ -18,7 +23,14 @@ class DataPointLoader:
         self.init_artery_label = generate_initial_label(mask=datapoint.artery_mask, bboxs=datapoint.bbox_pair)
         self.init_vein_label = generate_initial_label(mask=datapoint.vein_mask, bboxs=datapoint.bbox_pair)
 
-    def get_current_data(self, index):
+    def get_current_data(self, index: int):
+        """
+        Based on index returns the artery/vein related data needed for training.
+        0: artery
+        1: vein
+        """
+        assert index in (0, 1), "index must be 0 (artery) or 1 (vein)"
+
         if index == 0:
             return (self.init_artery_label, self.artery_deskeleton_map,
                     self.datapoint.artery_mask, self.datapoint.artery_skeleton,
@@ -28,11 +40,14 @@ class DataPointLoader:
                     self.datapoint.vein_mask, self.datapoint.vein_skeleton,
                     self.datapoint.vein_paths)
 
-def generate_initial_label(mask, bboxs) -> np.ndarray:
+def generate_initial_label(mask: np.ndarray, bboxs: np.ndarray) -> np.ndarray:
     """
     Initializes the labels for the iterative (binary) segmentation.
+
     The 0th label is the intersection of the bounding boxes (inclusive) and the original mask.
+
     Class index/pixel value of:
+
         - background: 0
         - segmentation: 1
     """
@@ -61,7 +76,7 @@ def generate_next_label(index, previous_label,
 
     The function also returns the first coordinate of the ith step of the traversal.
     This point will be utilized during training - the coordinate is the center of a cube
-    that will be cropped from the CT scan for more efficient training. If the traversal has been
+    that will be cropped from the CT scan for more (memory and time) efficient training. If the traversal has been
     finished, None is returned instead of a coordinate.
     """
 
@@ -76,7 +91,7 @@ def generate_next_label(index, previous_label,
 
     return next_label, paths[index][0]
 
-def pad_image(image, pad_width):
+def pad_image(image: np.ndarray, pad_width: int) -> np.ndarray:
     """
     Pads the 3D image with zeros on all sides by pad_width voxels.
     """
@@ -92,13 +107,15 @@ def pad_image(image, pad_width):
     return padded_image
 
 
-def get_3d_patch(image, center, a=40):
+def get_3d_patch(image:np.ndarray, center, a: int = 40):
     """
     Extracts a 3D patch from the input image.
     The extracted patch is a cube with side lengths of a.
     The parameter center is the center of the extracted cube/patch.
     center's shape is [z, y, x]
     """
+
+    center = np.array(center, dtype=int)
 
     half = a // 2 # floor rounding
 

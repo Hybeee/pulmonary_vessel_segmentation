@@ -11,7 +11,7 @@ class DataPreparer:
     """
     DataPreparer class that prepares data for training a model to iteratively predict pulmonary arteries and veins. The inputs are the parameters described below.\n
     The preparation consists of the following stages - for each input CT scan and their respective artery/vein mask, spacing values and optionally provided pulmonary mask:
-        1. If no pulmonary masks were provided the class creates them for each input CT scan by utilizing a TS (TotalSegmentator) model
+        1. If no pulmonary masks were provided, the class creates them for each input CT scan by utilizing a TS (TotalSegmentator) model
         2. Based on the provided/generated pulmonary mask, bounding boxes are generated that contain the exit points of pulmonary veins and arteries from the heart.
         3. Based on the input artery and vein masks, their skeletons are generated
         4. The intersection points of the skeletons and the bounding boxes are generated
@@ -43,7 +43,7 @@ class DataPreparer:
                  vein_masks: np.ndarray,
                  spacings: np.ndarray,
                  pulmonary_masks: np.ndarray = None,
-                 verbose: bool =False):
+                 verbose: bool = False):
         # NORMAL ATTRIBUTES
         self.cts = cts
         self.artery_masks = artery_masks
