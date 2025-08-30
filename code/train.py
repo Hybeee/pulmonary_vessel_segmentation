@@ -1,10 +1,14 @@
 from data.dataset import IterativeSegmentationDataset, DataPoint
 import utils.fast_marching as fm
+from utils.scan_plotter import view_scan
 
 import numpy as np
 import torch
 import SimpleITK as sitk
-from utils.scan_plotter import view_scan
+import matplotlib.pyplot as plt
+
+from datetime import datetime
+import os
 
 class DataPointLoader:
     """
@@ -133,11 +137,31 @@ def get_3d_patch(image:np.ndarray, center, a: int = 40):
 
     return patch
 
+def save_training_stats(train_loss: np.ndarray):
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    folder_name = f"train_{timestamp}"
+    folder_path = os.path.join(os.getcwd(), "runs", folder_name)
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    epochs = np.arange(1, len(train_loss) + 1)
+
+    ax.plot(epochs, train_loss, color="blue")
+    ax.set_xlabel('Epochs')
+    ax.set_ylabel('Train loss')
+    ax.set_title('Training loss curve')
+
+    plt.savefig(os.path.join(folder_path, "train_loss.png"))
+
+    plt.close(fig=fig)
 
 def train(device, epochs,
           model, optimizer, loss_fn,
           train_dataset: IterativeSegmentationDataset, val_dataset: IterativeSegmentationDataset,
-          verbose=False):
+          verbose: bool = False, save_statistics: bool = False):
     """
     TODO: Validation related code. Until training's logic is not finalized, no need to implement it.
     """
@@ -203,6 +227,9 @@ def train(device, epochs,
 
         train_loss.append(running_loss)
         running_loss = 0
+    
+    if save_statistics:
+        save_training_stats(train_loss=train_loss)
 
 def main():
     ct = sitk.ReadImage("dataset/HiPaS/ct_scan_nii/005.nii.gz")
